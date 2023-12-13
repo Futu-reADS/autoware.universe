@@ -1,0 +1,147 @@
+enum GearCommand {
+    NONE,
+    NEUTRAL,
+    DRIVE,
+    DRIVE_2,
+    DRIVE_3,
+    DRIVE_4,
+    DRIVE_5,
+    DRIVE_6,
+    DRIVE_7,
+    DRIVE_8,
+    DRIVE_9,
+    DRIVE_10,
+    DRIVE_11,
+    DRIVE_12,
+    DRIVE_13,
+    DRIVE_14,
+    DRIVE_15,
+    DRIVE_16,
+    DRIVE_17,
+    DRIVE_18,
+    REVERSE,
+    REVERSE_2,
+    PARK,
+    LOW,
+    LOW_2
+  };
+  
+  enum AutowareState {
+    INITIALIZING,
+    WAITING_FOR_ROUTE,
+    PLANNING,
+    WAITING_FOR_ENGAGE,
+    DRIVING,
+    ARRIVED_GOAL,
+    FINALIZING
+  };
+  
+  enum Sign {
+    ZERO,
+    POSITIVE,
+    NEGATIVE
+  };
+  
+  
+  interface Ipub_shift_cmd
+  {
+    in GearCommand gear_cmd();
+    behavior
+    {
+      on gear_cmd: reply(GearCommand.PARK);
+      on gear_cmd: reply(GearCommand.REVERSE);
+      on gear_cmd: reply(GearCommand.DRIVE);
+      on gear_cmd: reply(GearCommand.NONE);
+      on gear_cmd: reply(GearCommand.NEUTRAL);
+      on gear_cmd: reply(GearCommand.DRIVE);
+      on gear_cmd: reply(GearCommand.DRIVE_2);
+      on gear_cmd: reply(GearCommand.DRIVE_3);
+      on gear_cmd: reply(GearCommand.DRIVE_4);
+      on gear_cmd: reply(GearCommand.DRIVE_5);
+      on gear_cmd: reply(GearCommand.DRIVE_6);
+      on gear_cmd: reply(GearCommand.DRIVE_7);
+      on gear_cmd: reply(GearCommand.DRIVE_8);
+      on gear_cmd: reply(GearCommand.DRIVE_9);
+      on gear_cmd: reply(GearCommand.DRIVE_10);
+      on gear_cmd: reply(GearCommand.DRIVE_11);
+      on gear_cmd: reply(GearCommand.DRIVE_12);
+      on gear_cmd: reply(GearCommand.DRIVE_13);
+      on gear_cmd: reply(GearCommand.DRIVE_14);
+      on gear_cmd: reply(GearCommand.DRIVE_15);
+      on gear_cmd: reply(GearCommand.DRIVE_16);
+      on gear_cmd: reply(GearCommand.DRIVE_17);
+      on gear_cmd: reply(GearCommand.DRIVE_18);
+      on gear_cmd: reply(GearCommand.REVERSE);
+      on gear_cmd: reply(GearCommand.REVERSE_2);
+      on gear_cmd: reply(GearCommand.PARK);
+      on gear_cmd: reply(GearCommand.LOW);
+      on gear_cmd: reply(GearCommand.LOW_2);
+    }
+  }
+  
+  interface Isub_autoware_state 
+  {
+    in AutowareState state();
+    behavior
+    {
+      on state: reply(AutowareState.INITIALIZING);
+      on state: reply(AutowareState.WAITING_FOR_ROUTE);
+      on state: reply(AutowareState.PLANNING);
+      on state: reply(AutowareState.WAITING_FOR_ENGAGE);
+      on state: reply(AutowareState.DRIVING);
+      on state: reply(AutowareState.ARRIVED_GOAL);
+      on state: reply(AutowareState.FINALIZING);
+  
+    }
+  }
+  
+  interface Ievaluate_longitudinal_speed
+  {
+    in Sign request();
+    behavior
+    {
+      on request: reply(Sign.ZERO);
+      on request: reply(Sign.POSITIVE);
+      on request: reply(Sign.NEGATIVE);
+    }
+  }
+  
+  interface Iget_params
+  {
+    in bool park_on_goal();
+    behavior
+    {
+      on park_on_goal: reply(true);
+      on park_on_goal: reply(false);
+    }
+  }
+  
+  component shift_decider
+  {
+    // pub/sub ports
+    provides Ipub_shift_cmd pub_shift_cmd;
+    requires Ipub_shift_cmd sub_current_gear;
+    requires Isub_autoware_state sub_autoware_state ;
+    
+    // helper ports
+    requires Ievaluate_longitudinal_speed evaluate_longitudinal_speed;
+    requires Iget_params get_params;
+  
+  behavior
+    {
+  
+      on pub_shift_cmd.gear_cmd(): {
+        if (sub_autoware_state.state() == AutowareState.ARRIVED_GOAL && get_params.park_on_goal())
+          reply(GearCommand.PARK);
+        else if (evaluate_longitudinal_speed.request() == Sign.POSITIVE)
+          reply(GearCommand.DRIVE);
+        else if (evaluate_longitudinal_speed.request() == Sign.NEGATIVE)
+          reply(GearCommand.REVERSE);
+        else
+          // Dezyne always need to follow interface contract so we reply with current 
+          // (shift_cmd_.command) gear command
+          reply(sub_current_gear.gear_cmd());
+        
+      }
+    }
+  }
