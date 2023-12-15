@@ -14,17 +14,17 @@
   <!-- pose_initializer -->
   <group>
     <include file="$(find-pkg-share pose_initializer)/launch/pose_initializer.launch.xml">
-      <arg name="gnss_enabled" value="true"/>
+      <arg name="gnss_enabled" value="false"/>
       <arg name="ndt_enabled" value="true"/>
       <arg name="ekf_enabled" value="true"/>
-      <arg name="stop_check_enabled" value="true"/>
+      <arg name="stop_check_enabled" value="false"/>
     </include>
   </group>
 
   <!-- pose_initializer (Automatic call from AD API) -->
-  <group>
+  <!-- <group>
     <include file="$(find-pkg-share automatic_pose_initializer)/launch/automatic_pose_initializer.launch.xml"/>
-  </group>
+  </group> -->
 
   <!-- util -->
   <group>

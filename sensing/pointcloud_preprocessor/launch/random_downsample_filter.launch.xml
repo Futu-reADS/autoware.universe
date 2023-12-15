@@ -1,5 +1,8 @@
 <launch>
-  <arg name="input_topic_name" default="/sensing/lidar/top/pointcloud_raw"/>
+  <!-- <arg name="input_topic_name" default="/sensing/lidar/top/pointcloud_raw"/> -->
+  <arg name="input_topic_name" default="/sensing/lidar/top/outlier_filtered/pointcloud"/>
+
+  
   <arg name="output_topic_name" default="/sensing/lidar/top/random_downsample_filter/pointcloud"/>
 
   <arg name="sample_num" default="1500"/>

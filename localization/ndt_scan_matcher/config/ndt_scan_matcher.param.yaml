@@ -71,7 +71,7 @@
     dynamic_map_loading_map_radius: 150.0
 
     # Radius of input LiDAR range (used for diagnostics of dynamic map loading)
-    lidar_radius: 100.0
+    lidar_radius: 120.0
 
     # cspell: ignore degrounded
     # A flag for using scan matching score based on de-grounded LiDAR scan
