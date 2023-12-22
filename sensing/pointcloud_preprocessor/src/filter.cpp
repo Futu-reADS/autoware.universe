@@ -197,7 +197,7 @@ rcl_interfaces::msg::SetParametersResult pointcloud_preprocessor::Filter::filter
   std::scoped_lock lock(mutex_);
 
   if (get_param(p, "input_frame", tf_input_frame_)) {
-    RCLCPP_DEBUG(get_logger(), "Setting the input TF frame to: %s.", tf_input_frame_.c_str());
+    RCLCPP_INFO(get_logger(), "Setting the input TF frame to: %s.", tf_input_frame_.c_str());
   }
   if (get_param(p, "output_frame", tf_output_frame_)) {
     RCLCPP_DEBUG(get_logger(), "Setting the output TF frame to: %s.", tf_output_frame_.c_str());
