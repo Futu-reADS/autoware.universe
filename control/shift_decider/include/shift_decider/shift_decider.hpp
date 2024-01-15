@@ -20,7 +20,10 @@
 #include <autoware_auto_control_msgs/msg/ackermann_control_command.hpp>
 #include <autoware_auto_system_msgs/msg/autoware_state.hpp>
 #include <autoware_auto_vehicle_msgs/msg/gear_command.hpp>
+#include "shift_decider_dezyne.hh"
 
+#include <dzn/locator.hh>
+#include <dzn/runtime.hh>
 #include <memory>
 
 class ShiftDecider : public rclcpp::Node
@@ -34,6 +37,9 @@ private:
   void onAutowareState(autoware_auto_system_msgs::msg::AutowareState::SharedPtr msg);
   void updateCurrentShiftCmd();
   void initTimer(double period_s);
+  dzn::locator locator;
+  dzn::runtime runtime;
+  shift_decider shift_decider_instance;
 
   rclcpp::Publisher<autoware_auto_vehicle_msgs::msg::GearCommand>::SharedPtr pub_shift_cmd_;
   rclcpp::Subscription<autoware_auto_control_msgs::msg::AckermannControlCommand>::SharedPtr
@@ -45,6 +51,8 @@ private:
   autoware_auto_control_msgs::msg::AckermannControlCommand::SharedPtr control_cmd_;
   autoware_auto_system_msgs::msg::AutowareState::SharedPtr autoware_state_;
   autoware_auto_vehicle_msgs::msg::GearCommand shift_cmd_;
+  uint8_t prev_shift_command = autoware_auto_vehicle_msgs::msg::GearCommand::PARK;
+
   bool park_on_goal_;
 };
 
