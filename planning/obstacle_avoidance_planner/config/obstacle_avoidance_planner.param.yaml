@@ -4,7 +4,7 @@
       enable_smoothing: true                                       # enable path smoothing by elastic band
       enable_skip_optimization: false                              # skip elastic band and model predictive trajectory
       enable_reset_prev_optimization: false                        # If true, optimization has no fix constraint to the previous result.
-      enable_outside_drivable_area_stop: true                      # stop if the ego's trajectory footprint is outside the drivable area
+      enable_outside_drivable_area_stop: false # LJ                      # stop if the ego's trajectory footprint is outside the drivable area
       use_footprint_polygon_for_outside_drivable_area_check: false # If false, only the footprint's corner points are considered.
 
       debug:

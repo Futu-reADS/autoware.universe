@@ -71,11 +71,11 @@
       average_num: 1000
       steering_offset_limit: 0.02
 
-    # vehicle parameters
-    mass_kg: 2400.0
-    mass_fl: 600.0
-    mass_fr: 600.0
-    mass_rl: 600.0
-    mass_rr: 600.0
-    cf: 155494.663
-    cr: 155494.663
+    # vehicle parameters #LJ
+    mass_kg: 200.0
+    mass_fl: 50.0
+    mass_fr: 50.0
+    mass_rl: 50.0
+    mass_rr: 50.0
+    cf: 1554.663
+    cr: 1554.663

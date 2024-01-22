@@ -2,7 +2,7 @@
   ros__parameters:
     planning_hz: 10.0
 
-    backward_path_length: 5.0
+    backward_path_length: 0.0 # LJ
     forward_path_length: 200.0
     backward_length_buffer_for_end_of_pull_over: 5.0
     backward_length_buffer_for_end_of_pull_out: 5.0
