@@ -1,0 +1,137 @@
+enum GearCommand {
+    NONE,
+    NEUTRAL,
+    DRIVE,
+    DRIVE_2,
+    DRIVE_3,
+    DRIVE_4,
+    DRIVE_5,
+    DRIVE_6,
+    DRIVE_7,
+    DRIVE_8,
+    DRIVE_9,
+    DRIVE_10,
+    DRIVE_11,
+    DRIVE_12,
+    DRIVE_13,
+    DRIVE_14,
+    DRIVE_15,
+    DRIVE_16,
+    DRIVE_17,
+    DRIVE_18,
+    REVERSE,
+    REVERSE_2,
+    PARK,
+    LOW,
+    LOW_2
+};
+
+enum MrmState {
+    UNKNOWN,
+    NORMAL,
+    MRM_OPERATING,
+    MRM_SUCCEEDED,
+    MRM_FAILED,
+    NONE,
+    EMERGENCY_STOP,
+    COMFORTABLE_STOP
+
+};
+
+enum HazardStatus {
+  NO_FAULT,
+  SAFE_FAULT,
+  LATENT_FAULT,
+  SINGLE_POINT_FAULT
+};
+
+
+
+interface Imrm_state {
+  in MrmState get_state();
+  behavior
+  {
+    on get_state: reply(MrmState.UNKNOWN);
+    on get_state: reply(MrmState.NORMAL);
+    on get_state: reply(MrmState.MRM_OPERATING);
+    on get_state: reply(MrmState.MRM_SUCCEEDED);
+    on get_state: reply(MrmState.MRM_FAILED);
+    on get_state: reply(MrmState.NONE);
+    on get_state: reply(MrmState.EMERGENCY_STOP);
+    on get_state: reply(MrmState.COMFORTABLE_STOP);
+  }
+}
+
+interface Ihazard_status {
+  in HazardStatus get_level();
+  behavior
+  {
+    on get_level: {
+      reply(HazardStatus.NO_FAULT);
+    }
+    on get_level: reply(HazardStatus.SAFE_FAULT);
+    on get_level: reply(HazardStatus.LATENT_FAULT);
+    on get_level: reply(HazardStatus.SINGLE_POINT_FAULT);
+  }
+}
+
+interface Iparams {
+  in bool use_comfortable_stop();
+  behavior {
+    on use_comfortable_stop: reply(true);
+    on use_comfortable_stop: reply(false);
+  }
+}
+
+
+
+component EmergencyHandlerDezyne {
+  provides Imrm_state getCurrentMrmBehavior;
+  requires Imrm_state mrm_behavior;
+  requires Ihazard_status hazard_status;
+  requires Iparams params;
+
+  behavior {
+    on getCurrentMrmBehavior.get_state(): {
+      MrmState behavior_current = mrm_behavior.get_state();
+      HazardStatus level = hazard_status.get_level();
+      if (behavior_current.NONE) {
+        [level.LATENT_FAULT] {
+          if (params.use_comfortable_stop())
+            return (MrmState.COMFORTABLE_STOP);
+          else
+            return (MrmState.COMFORTABLE_STOP);
+        }
+        [level.SINGLE_POINT_FAULT] {
+          return (MrmState.EMERGENCY_STOP);
+        }
+      }
+      // else if (behavior_current.COMFORTABLE_STOP) {
+
+      // }
+      // else {
+
+      // }
+    }
+  }
+
+  
+  
+}
+
+
+// interface IoperateMrm() {
+
+// }
+
+
+
+// getCurrentMrmBehavior
+
+// component EmergencyHandlerDezyne {
+
+
+// }
+
+
+
