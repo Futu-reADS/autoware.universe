@@ -132,14 +132,22 @@ IApproach::dzn_update_state (dzn::locator const& locator)
     {
       case 196803356u:
       //0:ApproachStuff
+      dzn_state = 2;
+      break;
+      case 2696171467u:
+      //0:StopPointReached
       dzn_state = 1;
       break;
-      case 1136467885u:
-      //1:State:APPROACH
+      case 2489929490u:
+      //1:false
       dzn_state = 0;
       break;
-      case 3712971843u:
-      //1:State:STOPPED
+      case 1417291072u:
+      //1:true
+      dzn_state = 0;
+      break;
+      case 632232461u:
+      //2:return
       dzn_state = 0;
       break;
       default: locator.get<dzn::illegal_handler> ().handle (LOCATION);
@@ -149,6 +157,7 @@ void
 IApproach::dzn_check_bindings ()
 {
   if (!this->in.ApproachStuff) throw dzn::binding_error (this->dzn_meta, "in.ApproachStuff");
+  if (!this->in.StopPointReached) throw dzn::binding_error (this->dzn_meta, "in.StopPointReached");
 }
 namespace dzn
 {
@@ -172,16 +181,24 @@ IStopped::dzn_update_state (dzn::locator const& locator)
   if (!dzn_share_p || !dzn_label) return;
   switch (dzn::hash (dzn_label, dzn_state))
     {
-      case 614566456u:
-      //0:StoppedStuff
+      case 1457708397u:
+      //0:StopTimeElapsed
       dzn_state = 1;
       break;
-      case 8237912u:
-      //1:State:START
+      case 614566456u:
+      //0:StoppedStuff
+      dzn_state = 2;
+      break;
+      case 2489929490u:
+      //1:false
       dzn_state = 0;
       break;
-      case 3712971843u:
-      //1:State:STOPPED
+      case 1417291072u:
+      //1:true
+      dzn_state = 0;
+      break;
+      case 632232461u:
+      //2:return
       dzn_state = 0;
       break;
       default: locator.get<dzn::illegal_handler> ().handle (LOCATION);
@@ -191,6 +208,7 @@ void
 IStopped::dzn_check_bindings ()
 {
   if (!this->in.StoppedStuff) throw dzn::binding_error (this->dzn_meta, "in.StoppedStuff");
+  if (!this->in.StopTimeElapsed) throw dzn::binding_error (this->dzn_meta, "in.StopTimeElapsed");
 }
 namespace dzn
 {
@@ -273,15 +291,35 @@ ApproachStateHandler::approachState_updateState ()
 {
   if (approachState.state == ::IApproachState::State::APPROACH)
     {
-      *this->dzn_reply_IApproachState_State = this->approach.in.ApproachStuff ();
-      if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
-      (*this->dzn_out_approachState) = nullptr;
+      this->approach.in.ApproachStuff ();
+      if (this->approach.in.StopPointReached ())
+        {
+          *this->dzn_reply_IApproachState_State = ::IApproachState::State::STOPPED;
+          if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
+          (*this->dzn_out_approachState) = nullptr;
+        }
+      else
+        {
+          *this->dzn_reply_IApproachState_State = approachState.state;
+          if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
+          (*this->dzn_out_approachState) = nullptr;
+        }
     }
   else if (approachState.state == ::IApproachState::State::STOPPED)
     {
-      *this->dzn_reply_IApproachState_State = this->stop.in.StoppedStuff ();
-      if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
-      (*this->dzn_out_approachState) = nullptr;
+      this->stop.in.StoppedStuff ();
+      if (this->stop.in.StopTimeElapsed ())
+        {
+          *this->dzn_reply_IApproachState_State = ::IApproachState::State::START;
+          if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
+          (*this->dzn_out_approachState) = nullptr;
+        }
+      else
+        {
+          *this->dzn_reply_IApproachState_State = approachState.state;
+          if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
+          (*this->dzn_out_approachState) = nullptr;
+        }
     }
   else if (approachState.state == ::IApproachState::State::START)
     {

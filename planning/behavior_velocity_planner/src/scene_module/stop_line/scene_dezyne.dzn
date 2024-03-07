@@ -41,18 +41,22 @@ interface IApproachState
 }
 
 interface IApproach {
-    in IApproachState.State ApproachStuff();
+    in void ApproachStuff();
+    in bool StopPointReached();
     behavior {
-        on ApproachStuff: {reply(IApproachState.State.APPROACH);}
-        on ApproachStuff: {reply(IApproachState.State.STOPPED);}
+        on ApproachStuff: {}
+        on StopPointReached: reply(true);
+        on StopPointReached: reply(false);
     }
 }
 
 interface IStopped {
-    in IApproachState.State StoppedStuff();
+    in void StoppedStuff();
+    in bool StopTimeElapsed();
     behavior {
-        on StoppedStuff: {reply(IApproachState.State.STOPPED);}
-        on StoppedStuff: {reply(IApproachState.State.START);}
+        on StoppedStuff: {}
+        on StopTimeElapsed: reply(true);
+        on StopTimeElapsed: reply(false);
     }
 }
 
@@ -73,13 +77,22 @@ component ApproachStateHandler {
     behavior {
         on approachState.updateState(): {
             [approachState.state.APPROACH] {
-                reply(approach.ApproachStuff());
-                // reply(IApproachState.State.STOPPED);
+                approach.ApproachStuff();
+                if (approach.StopPointReached()) {
+                    reply(IApproachState.State.STOPPED);
+                }
+                else {
+                    reply(approachState.state);
+                }
             }
             [approachState.state.STOPPED] {
-                reply(stop.StoppedStuff());
-                // reply(IApproachState.State.START);
-                
+                stop.StoppedStuff();
+                if (stop.StopTimeElapsed()) {
+                    reply(IApproachState.State.START);
+                }
+                else {
+                    reply(approachState.state);
+                }
             }
             [approachState.state.START] {
                 reply(start.StartStuff());

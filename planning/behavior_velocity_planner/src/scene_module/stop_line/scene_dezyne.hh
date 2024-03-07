@@ -77,7 +77,8 @@ struct IApproach
   dzn::port::meta dzn_meta;
   struct
     {
-      dzn::in::event<::IApproachState::State ()> ApproachStuff;
+      dzn::in::event<void ()> ApproachStuff;
+      dzn::in::event<bool ()> StopPointReached;
     } in;
   struct
     {
@@ -94,6 +95,7 @@ struct IApproach
   , dzn_state ()
     {
       in.ApproachStuff.set (that, this, "ApproachStuff");
+      in.StopPointReached.set (that, this, "StopPointReached");
     }
   virtual ~IApproach ();
   void dzn_event (char const* event);
@@ -105,6 +107,7 @@ namespace dzn
   inline void connect (::IApproach& provide, ::IApproach& require)
     {
       require.in.ApproachStuff = provide.in.ApproachStuff;
+      require.in.StopPointReached = provide.in.StopPointReached;
       provide.dzn_meta.require = require.dzn_meta.require;
       require.dzn_meta.provide = provide.dzn_meta.provide;
       provide.dzn_share_p = require.dzn_share_p = provide.dzn_share_p && require.dzn_share_p;
@@ -118,7 +121,8 @@ struct IStopped
   dzn::port::meta dzn_meta;
   struct
     {
-      dzn::in::event<::IApproachState::State ()> StoppedStuff;
+      dzn::in::event<void ()> StoppedStuff;
+      dzn::in::event<bool ()> StopTimeElapsed;
     } in;
   struct
     {
@@ -135,6 +139,7 @@ struct IStopped
   , dzn_state ()
     {
       in.StoppedStuff.set (that, this, "StoppedStuff");
+      in.StopTimeElapsed.set (that, this, "StopTimeElapsed");
     }
   virtual ~IStopped ();
   void dzn_event (char const* event);
@@ -146,6 +151,7 @@ namespace dzn
   inline void connect (::IStopped& provide, ::IStopped& require)
     {
       require.in.StoppedStuff = provide.in.StoppedStuff;
+      require.in.StopTimeElapsed = provide.in.StopTimeElapsed;
       provide.dzn_meta.require = require.dzn_meta.require;
       require.dzn_meta.provide = provide.dzn_meta.provide;
       provide.dzn_share_p = require.dzn_share_p = provide.dzn_share_p && require.dzn_share_p;
@@ -201,6 +207,7 @@ struct ApproachStateHandler: public dzn::component
   dzn::runtime& dzn_runtime;
   dzn::locator const& dzn_locator;
   ::IApproachState::State* dzn_reply_IApproachState_State;
+  bool* dzn_reply_bool;
   std::function<void ()>* dzn_out_approachState;
   ::IApproachState approachState;
   ::IApproach approach;

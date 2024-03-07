@@ -42,7 +42,7 @@ StopLineModule::StopLineModule(
       // Ensure `path` is not nullptr before dereferencing
       if (!path || path->points.empty()) {
         RCLCPP_ERROR(logger_, "Path is not available.");
-        return IApproachState::State::APPROACH;
+        return;
       }
       // Insert stop pose
       planning_utils::insertStopPoint(this->stop_pose.position, this->stop_line_seg_idx, *path);
@@ -61,9 +61,10 @@ StopLineModule::StopLineModule(
           path->points, planner_data_->current_odometry->pose, stop_pose,
           VelocityFactor::APPROACHING);
       }
+  };
 
-      // Move to stopped state if stopped
-      if (
+  approachStateHandler.approach.in.StopPointReached = [this](){
+    if (
         signed_arc_dist_to_stop_point < planner_param_.hold_stop_margin_distance &&
         planner_data_->isVehicleStopped()) {
         RCLCPP_INFO(logger_, "APPROACH -> STOPPED");
@@ -74,9 +75,9 @@ StopLineModule::StopLineModule(
           RCLCPP_ERROR(
             logger_, "Failed to stop near stop line but ego stopped. Change state to STOPPED");
         }
-        return(IApproachState::State::STOPPED);
-      }
-      return IApproachState::State::APPROACH;
+        return true;
+    }
+    return false;
   };
 
   approachStateHandler.stop.in.StoppedStuff = [this](){
@@ -85,7 +86,7 @@ StopLineModule::StopLineModule(
         path->points, planner_data_->current_odometry->pose.position, 0.0);
 
       if (!stopped_pose) {
-        return IApproachState::State::STOPPED;
+        return;
       }
 
       SegmentIndexWithPose ego_pos_on_path;
@@ -106,14 +107,17 @@ StopLineModule::StopLineModule(
         velocity_factor_.set(
           path->points, planner_data_->current_odometry->pose, stop_pose, VelocityFactor::STOPPED);
       }
+  };
 
-      const auto elapsed_time = (clock_->now() - *stopped_time_).seconds();
 
-      if (planner_param_.stop_duration_sec < elapsed_time) {
-        RCLCPP_INFO(logger_, "STOPPED -> START");
-        return IApproachState::State::START;
-      }
-      return IApproachState::State::STOPPED;
+  approachStateHandler.stop.in.StopTimeElapsed = [this](){ 
+    const auto elapsed_time = (clock_->now() - *stopped_time_).seconds();
+    if (planner_param_.stop_duration_sec < elapsed_time) {
+      RCLCPP_INFO(logger_, "STOPPED -> START");
+      return true;
+    }
+    return false;
+
   };
 
   approachStateHandler.start.in.StartStuff = [this](){
