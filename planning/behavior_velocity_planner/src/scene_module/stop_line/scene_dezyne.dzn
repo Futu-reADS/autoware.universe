@@ -4,44 +4,63 @@ interface IApproachState
 {
     in State updateState();
     enum State {APPROACH, STOPPED, START};
-
+    // This behavior makes sure we can change state only in specific way
     behavior {
         State state = State.APPROACH;
-        on updateState: {
-            state = State.STOPPED;
-            reply(state);
+        [state.APPROACH] {
+            on updateState: {
+                state = State.STOPPED;
+                reply(state);
+            }
+            on updateState: {
+                state = State.APPROACH;
+                reply(state);
+            }
         }
-        on updateState: {
-            state = State.APPROACH;
-            reply(state);
+        [state.STOPPED] {
+            on updateState: {
+                state = State.STOPPED;
+                reply(state);
+            }
+            on updateState: {
+                state = State.START;
+                reply(state);
+            }
         }
-        on updateState: {
-            state = State.START;
-            reply(state);
+        [state.START] {
+            on updateState: {
+                state = State.START;
+                reply(state);
+            }
+            on updateState: {
+                state = State.APPROACH;
+                reply(state);
+            }
         }
     } 
 }
 
 interface IApproach {
-    in void ApproachStuff();
-    
+    in IApproachState.State ApproachStuff();
     behavior {
-        
-        on ApproachStuff: {}
+        on ApproachStuff: {reply(IApproachState.State.APPROACH);}
+        on ApproachStuff: {reply(IApproachState.State.STOPPED);}
     }
 }
 
 interface IStopped {
-    in void StoppedStuff();
+    in IApproachState.State StoppedStuff();
     behavior {
-        on StoppedStuff: {}
+        on StoppedStuff: {reply(IApproachState.State.STOPPED);}
+        on StoppedStuff: {reply(IApproachState.State.START);}
     }
 }
 
 interface IStart {
-    in void StartStuff();
+    in IApproachState.State StartStuff();
     behavior {
-        on StartStuff: {}
+        on StartStuff: {reply(IApproachState.State.START);}
+        on StartStuff: {reply(IApproachState.State.APPROACH);}
     }
 }
 // ModifyPathVelocity
@@ -52,20 +71,19 @@ component ApproachStateHandler {
     requires IStopped stop;
 
     behavior {
-
         on approachState.updateState(): {
             [approachState.state.APPROACH] {
-                approach.ApproachStuff();
-                reply(IApproachState.State.STOPPED);
+                reply(approach.ApproachStuff());
+                // reply(IApproachState.State.STOPPED);
             }
             [approachState.state.STOPPED] {
-                stop.StoppedStuff();
-                reply(IApproachState.State.START);
+                reply(stop.StoppedStuff());
+                // reply(IApproachState.State.START);
                 
             }
             [approachState.state.START] {
-                start.StartStuff();
-                reply(IApproachState.State.APPROACH);
+                reply(start.StartStuff());
+                // reply(IApproachState.State.APPROACH);
             }
             
         }

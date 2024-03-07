@@ -28,7 +28,7 @@ IApproachState::dzn_update_state (dzn::locator const& locator)
     {
       case 3599409592u:
       //0:updateState
-      dzn_state = 1;
+      dzn_state = 5;
       break;
       case 1136467885u:
       //1:State:APPROACH
@@ -40,18 +40,33 @@ IApproachState::dzn_update_state (dzn::locator const& locator)
       dzn_state = 2;
       state = IApproachState::State::START;
       break;
-      case 3712971843u:
-      //1:State:STOPPED
-      dzn_state = 3;
-      state = IApproachState::State::STOPPED;
-      break;
       case 3599409750u:
       //2:updateState
       dzn_state = 1;
       break;
-      case 3599409829u:
-      //3:updateState
-      dzn_state = 1;
+      case 8238070u:
+      //3:State:START
+      dzn_state = 2;
+      state = IApproachState::State::START;
+      break;
+      case 3712972001u:
+      //3:State:STOPPED
+      dzn_state = 4;
+      state = IApproachState::State::STOPPED;
+      break;
+      case 3599409908u:
+      //4:updateState
+      dzn_state = 3;
+      break;
+      case 1136468201u:
+      //5:State:APPROACH
+      dzn_state = 0;
+      state = IApproachState::State::APPROACH;
+      break;
+      case 3712972159u:
+      //5:State:STOPPED
+      dzn_state = 4;
+      state = IApproachState::State::STOPPED;
       break;
       default: locator.get<dzn::illegal_handler> ().handle (LOCATION);
     }
@@ -119,8 +134,12 @@ IApproach::dzn_update_state (dzn::locator const& locator)
       //0:ApproachStuff
       dzn_state = 1;
       break;
-      case 632232382u:
-      //1:return
+      case 1136467885u:
+      //1:State:APPROACH
+      dzn_state = 0;
+      break;
+      case 3712971843u:
+      //1:State:STOPPED
       dzn_state = 0;
       break;
       default: locator.get<dzn::illegal_handler> ().handle (LOCATION);
@@ -157,8 +176,12 @@ IStopped::dzn_update_state (dzn::locator const& locator)
       //0:StoppedStuff
       dzn_state = 1;
       break;
-      case 632232382u:
-      //1:return
+      case 8237912u:
+      //1:State:START
+      dzn_state = 0;
+      break;
+      case 3712971843u:
+      //1:State:STOPPED
       dzn_state = 0;
       break;
       default: locator.get<dzn::illegal_handler> ().handle (LOCATION);
@@ -195,8 +218,12 @@ IStart::dzn_update_state (dzn::locator const& locator)
       //0:StartStuff
       dzn_state = 1;
       break;
-      case 632232382u:
-      //1:return
+      case 1136467885u:
+      //1:State:APPROACH
+      dzn_state = 0;
+      break;
+      case 8237912u:
+      //1:State:START
       dzn_state = 0;
       break;
       default: locator.get<dzn::illegal_handler> ().handle (LOCATION);
@@ -246,22 +273,19 @@ ApproachStateHandler::approachState_updateState ()
 {
   if (approachState.state == ::IApproachState::State::APPROACH)
     {
-      this->approach.in.ApproachStuff ();
-      *this->dzn_reply_IApproachState_State = ::IApproachState::State::STOPPED;
+      *this->dzn_reply_IApproachState_State = this->approach.in.ApproachStuff ();
       if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
       (*this->dzn_out_approachState) = nullptr;
     }
   else if (approachState.state == ::IApproachState::State::STOPPED)
     {
-      this->stop.in.StoppedStuff ();
-      *this->dzn_reply_IApproachState_State = ::IApproachState::State::START;
+      *this->dzn_reply_IApproachState_State = this->stop.in.StoppedStuff ();
       if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
       (*this->dzn_out_approachState) = nullptr;
     }
   else if (approachState.state == ::IApproachState::State::START)
     {
-      this->start.in.StartStuff ();
-      *this->dzn_reply_IApproachState_State = ::IApproachState::State::APPROACH;
+      *this->dzn_reply_IApproachState_State = this->start.in.StartStuff ();
       if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
       (*this->dzn_out_approachState) = nullptr;
     }

@@ -77,7 +77,7 @@ struct IApproach
   dzn::port::meta dzn_meta;
   struct
     {
-      dzn::in::event<void ()> ApproachStuff;
+      dzn::in::event<::IApproachState::State ()> ApproachStuff;
     } in;
   struct
     {
@@ -118,7 +118,7 @@ struct IStopped
   dzn::port::meta dzn_meta;
   struct
     {
-      dzn::in::event<void ()> StoppedStuff;
+      dzn::in::event<::IApproachState::State ()> StoppedStuff;
     } in;
   struct
     {
@@ -159,7 +159,7 @@ struct IStart
   dzn::port::meta dzn_meta;
   struct
     {
-      dzn::in::event<void ()> StartStuff;
+      dzn::in::event<::IApproachState::State ()> StartStuff;
     } in;
   struct
     {
