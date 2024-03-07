@@ -44,7 +44,8 @@ class StopLineModule : public SceneModuleInterface
   using StopLineWithLaneId = std::pair<lanelet::ConstLineString3d, int64_t>;
 
 public:
-  enum class State { APPROACH, STOPPED, START };
+  // Dezyne model already provides State enum, no need to double
+  // enum class State { APPROACH, STOPPED, START };
 
   struct SegmentIndexWithPose
   {
@@ -102,7 +103,9 @@ private:
   lanelet::ConstLineString3d stop_line_;
 
   // State machine
-  State state_;
+  // I intentionally moved State enum inside IApproachState interface to make sure we 
+  // this specific enum, and no one the many other definitions
+  IApproachState::State state_;
 
   // Parameter
   PlannerParam planner_param_;
@@ -115,7 +118,7 @@ private:
 
   dzn::locator locator;
   dzn::runtime runtime;
-  ModifyPathVelocity ModifyPathVelocity_inst;
+  ApproachStateHandler approachStateHandler;
 
 };
 }  // namespace behavior_velocity_planner

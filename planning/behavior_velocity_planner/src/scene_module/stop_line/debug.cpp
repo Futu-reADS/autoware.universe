@@ -104,7 +104,7 @@ visualization_msgs::msg::MarkerArray StopLineModule::createVirtualWallMarkerArra
   }
   const auto p_front = tier4_autoware_utils::calcOffsetPose(
     *debug_data_.stop_pose, debug_data_.base_link2front, 0.0, 0.0);
-  if (state_ == State::APPROACH || state_ == State::STOPPED) {
+  if (state_ == IApproachState::State::APPROACH || state_ == IApproachState::State::STOPPED) {
     appendMarkerArray(
       virtual_wall_marker_creator_->createStopVirtualWallMarker(
         {p_front}, "stopline", now, module_id_),

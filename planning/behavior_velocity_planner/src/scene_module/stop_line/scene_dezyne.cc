@@ -6,54 +6,22 @@
 #define STRINGIZING(x) #x
 #define STR(x) STRINGIZING (x)
 #define LOCATION __FILE__ ":" STR (__LINE__)
-namespace dzn
-{
-  char const*
-  to_cstr (::State v)
-    {
-      switch (v)
-        {
-          case ::State::APPROACH: return "State:APPROACH";
-          case ::State::STOPPED: return "State:STOPPED";
-          case ::State::START: return "State:START";
-        }
-      return "";
-    }
-  template <>
-  std::string
-  to_string (::State v)
-    {
-      return to_cstr (v);
-    }
-}
-namespace dzn
-{
-  ::State
-  to_State (std::string s)
-    {
-      static std::map<std::string, ::State> m =   {
-            {"State:APPROACH", ::State::APPROACH},
-            {"State:STOPPED", ::State::STOPPED},
-            {"State:START", ::State::START}};
-      return m.at (s);
-    }
-}
-IVehicleState::IVehicleState (dzn::port::meta const& m)
+IApproachState::IApproachState (dzn::port::meta const& m)
 : dzn_meta (m)
 , dzn_share_p (true)
 , dzn_label ("")
 , dzn_state ()
-, state (::State::APPROACH)
+, state (::IApproachState::State::APPROACH)
 {}
-IVehicleState::~IVehicleState ()= default;
+IApproachState::~IApproachState ()= default;
 void
-IVehicleState::dzn_event (char const* event)
+IApproachState::dzn_event (char const* event)
 {
   if (!dzn_share_p) return;
   dzn_label = event;
 }
 void
-IVehicleState::dzn_update_state (dzn::locator const& locator)
+IApproachState::dzn_update_state (dzn::locator const& locator)
 {
   if (!dzn_share_p || !dzn_label) return;
   switch (dzn::hash (dzn_label, dzn_state))
@@ -65,17 +33,17 @@ IVehicleState::dzn_update_state (dzn::locator const& locator)
       case 1136467885u:
       //1:State:APPROACH
       dzn_state = 0;
-      state = State::APPROACH;
+      state = IApproachState::State::APPROACH;
       break;
       case 8237912u:
       //1:State:START
       dzn_state = 2;
-      state = State::START;
+      state = IApproachState::State::START;
       break;
       case 3712971843u:
       //1:State:STOPPED
       dzn_state = 3;
-      state = State::STOPPED;
+      state = IApproachState::State::STOPPED;
       break;
       case 3599409750u:
       //2:updateState
@@ -89,12 +57,44 @@ IVehicleState::dzn_update_state (dzn::locator const& locator)
     }
 }
 void
-IVehicleState::dzn_check_bindings ()
+IApproachState::dzn_check_bindings ()
 {
   if (!this->in.updateState) throw dzn::binding_error (this->dzn_meta, "in.updateState");
 }
 namespace dzn
 {
+}
+namespace dzn
+{
+  char const*
+  to_cstr (::IApproachState::State v)
+    {
+      switch (v)
+        {
+          case ::IApproachState::State::APPROACH: return "State:APPROACH";
+          case ::IApproachState::State::STOPPED: return "State:STOPPED";
+          case ::IApproachState::State::START: return "State:START";
+        }
+      return "";
+    }
+  template <>
+  std::string
+  to_string (::IApproachState::State v)
+    {
+      return to_cstr (v);
+    }
+}
+namespace dzn
+{
+  ::IApproachState::State
+  to_IApproachState_State (std::string s)
+    {
+      static std::map<std::string, ::IApproachState::State> m =   {
+            {"State:APPROACH", ::IApproachState::State::APPROACH},
+            {"State:STOPPED", ::IApproachState::State::STOPPED},
+            {"State:START", ::IApproachState::State::START}};
+      return m.at (s);
+    }
 }
 IApproach::IApproach (dzn::port::meta const& m)
 : dzn_meta (m)
@@ -210,10 +210,10 @@ IStart::dzn_check_bindings ()
 namespace dzn
 {
 }
-ModifyPathVelocity::ModifyPathVelocity (dzn::locator const& locator)
-: dzn_meta ({"ModifyPathVelocity","ModifyPathVelocity",0,  {},  {},  {[this] ()
+ApproachStateHandler::ApproachStateHandler (dzn::locator const& locator)
+: dzn_meta ({"ApproachStateHandler","ApproachStateHandler",0,  {},  {},  {[this] ()
         {
-          vehicleState.dzn_check_bindings ();
+          approachState.dzn_check_bindings ();
         }, [this] ()
         {
           approach.dzn_check_bindings ();
@@ -226,46 +226,46 @@ ModifyPathVelocity::ModifyPathVelocity (dzn::locator const& locator)
         }}})
 , dzn_runtime (locator.get<dzn::runtime> ())
 , dzn_locator (locator)
-, vehicleState ({  {"vehicleState",&vehicleState,this,&dzn_meta},  {"vehicleState",0,0,0}},this)
+, approachState ({  {"approachState",&approachState,this,&dzn_meta},  {"approachState",0,0,0}},this)
 , approach ({  {"approach",0,0,0},  {"approach",&approach,this,&dzn_meta}},this)
 , start ({  {"start",0,0,0},  {"start",&start,this,&dzn_meta}},this)
 , stop ({  {"stop",0,0,0},  {"stop",&stop,this,&dzn_meta}},this)
 {
   this->dzn_meta.require =   {&approach.dzn_meta,&start.dzn_meta,&stop.dzn_meta};
   this->dzn_runtime.performs_flush (this) = true;
-  this->vehicleState.in.updateState = [this] ()
+  this->approachState.in.updateState = [this] ()
     {
-      this->dzn_out_vehicleState = &this->vehicleState.in.updateState.dzn_out_binding;
-      this->dzn_reply_State = &this->vehicleState.in.updateState.reply;
-      this->vehicleState_updateState ();
-      return this->vehicleState.in.updateState.reply;
+      this->dzn_out_approachState = &this->approachState.in.updateState.dzn_out_binding;
+      this->dzn_reply_IApproachState_State = &this->approachState.in.updateState.reply;
+      this->approachState_updateState ();
+      return this->approachState.in.updateState.reply;
     };
 }
 void
-ModifyPathVelocity::vehicleState_updateState ()
+ApproachStateHandler::approachState_updateState ()
 {
-  if (vehicleState.state == ::State::APPROACH)
+  if (approachState.state == ::IApproachState::State::APPROACH)
     {
       this->approach.in.ApproachStuff ();
-      *this->dzn_reply_State = ::State::STOPPED;
-      if ((*this->dzn_out_vehicleState)) (*this->dzn_out_vehicleState) ();
-      (*this->dzn_out_vehicleState) = nullptr;
+      *this->dzn_reply_IApproachState_State = ::IApproachState::State::STOPPED;
+      if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
+      (*this->dzn_out_approachState) = nullptr;
     }
-  else if (vehicleState.state == ::State::STOPPED)
+  else if (approachState.state == ::IApproachState::State::STOPPED)
     {
       this->stop.in.StoppedStuff ();
-      *this->dzn_reply_State = ::State::START;
-      if ((*this->dzn_out_vehicleState)) (*this->dzn_out_vehicleState) ();
-      (*this->dzn_out_vehicleState) = nullptr;
+      *this->dzn_reply_IApproachState_State = ::IApproachState::State::START;
+      if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
+      (*this->dzn_out_approachState) = nullptr;
     }
-  else if (vehicleState.state == ::State::START)
+  else if (approachState.state == ::IApproachState::State::START)
     {
       this->start.in.StartStuff ();
-      *this->dzn_reply_State = ::State::APPROACH;
-      if ((*this->dzn_out_vehicleState)) (*this->dzn_out_vehicleState) ();
-      (*this->dzn_out_vehicleState) = nullptr;
+      *this->dzn_reply_IApproachState_State = ::IApproachState::State::APPROACH;
+      if ((*this->dzn_out_approachState)) (*this->dzn_out_approachState) ();
+      (*this->dzn_out_approachState) = nullptr;
     }
-  else if (!(vehicleState.state == ::State::START) && (!(vehicleState.state == ::State::STOPPED) && !(vehicleState.state == ::State::APPROACH))) this->dzn_locator.get<dzn::illegal_handler> ().handle (LOCATION);
+  else if (!(approachState.state == ::IApproachState::State::START) && (!(approachState.state == ::IApproachState::State::STOPPED) && !(approachState.state == ::IApproachState::State::APPROACH))) this->dzn_locator.get<dzn::illegal_handler> ().handle (LOCATION);
   else this->dzn_locator.get<dzn::illegal_handler> ().handle (LOCATION);
 }
 // version 2.18.0

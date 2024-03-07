@@ -31,11 +31,15 @@ StopLineModule::StopLineModule(
 : SceneModuleInterface(module_id, logger, clock),
   lane_id_(lane_id),
   stop_line_(stop_line),
-  state_(State::APPROACH),
-  ModifyPathVelocity_inst(locator.set(runtime))
+  state_(IApproachState::State::APPROACH),
+  approachStateHandler(locator.set(runtime))
 {
   velocity_factor_.init(VelocityFactor::STOP_SIGN);
   planner_param_ = planner_param;
+
+  approachStateHandler.approach.in.ApproachStuff = [this](){
+  };
+
 }
 
 bool StopLineModule::modifyPathVelocity(PathWithLaneId * path, StopReason * stop_reason)
@@ -76,8 +80,12 @@ bool StopLineModule::modifyPathVelocity(PathWithLaneId * path, StopReason * stop
   const double signed_arc_dist_to_stop_point = motion_utils::calcSignedArcLength(
     path->points, planner_data_->current_odometry->pose.position, current_seg_idx,
     stop_pose.position, stop_line_seg_idx);
+
+
+
+  state_ = approachStateHandler.approachState.in.updateState();
   switch (state_) {
-    case State::APPROACH: {
+    case IApproachState::State::APPROACH: {
       // Insert stop pose
       planning_utils::insertStopPoint(stop_pose.position, stop_line_seg_idx, *path);
 
@@ -102,7 +110,7 @@ bool StopLineModule::modifyPathVelocity(PathWithLaneId * path, StopReason * stop
         planner_data_->isVehicleStopped()) {
         RCLCPP_INFO(logger_, "APPROACH -> STOPPED");
 
-        state_ = State::STOPPED;
+        state_ = IApproachState::State::STOPPED;
         stopped_time_ = std::make_shared<const rclcpp::Time>(clock_->now());
 
         if (signed_arc_dist_to_stop_point < -planner_param_.hold_stop_margin_distance) {
@@ -114,7 +122,7 @@ bool StopLineModule::modifyPathVelocity(PathWithLaneId * path, StopReason * stop
       break;
     }
 
-    case State::STOPPED: {
+    case IApproachState::State::STOPPED: {
       // Change state after vehicle departure
       const auto stopped_pose = motion_utils::calcLongitudinalOffsetPose(
         path->points, planner_data_->current_odometry->pose.position, 0.0);
@@ -146,18 +154,18 @@ bool StopLineModule::modifyPathVelocity(PathWithLaneId * path, StopReason * stop
 
       if (planner_param_.stop_duration_sec < elapsed_time) {
         RCLCPP_INFO(logger_, "STOPPED -> START");
-        state_ = State::START;
+        state_ = IApproachState::State::START;
       }
 
       break;
     }
 
-    case State::START: {
+    case IApproachState::State::START: {
       // Initialize if vehicle is far from stop_line
       if (planner_param_.use_initialization_stop_line_state) {
         if (signed_arc_dist_to_stop_point > planner_param_.hold_stop_margin_distance) {
           RCLCPP_INFO(logger_, "START -> APPROACH");
-          state_ = State::APPROACH;
+          state_ = IApproachState::State::APPROACH;
         }
       }
 

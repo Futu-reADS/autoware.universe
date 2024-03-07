@@ -8,36 +8,18 @@ namespace dzn
 #include <iostream>
 #include <vector>
 #include <map>
-#ifndef ENUM_STATE
-#define ENUM_STATE
-enum struct State
+#ifndef IAPPROACHSTATE_HH
+#define IAPPROACHSTATE_HH
+struct IApproachState
 {
-  APPROACH,STOPPED,START
-};
-namespace dzn
-{
-  char const* to_cstr (::State v);
-  template <>
-  std::string to_string (::State v);
-}
-template <typename Char, typename Traits>
-std::basic_ostream<Char, Traits> & operator << (std::basic_ostream<Char, Traits>& os, ::State v)
-{
-  return os << dzn::to_cstr (v);
-}
-namespace dzn
-{
-  ::State to_State (std::string s);
-}
-#endif // ENUM_STATE
-#ifndef IVEHICLESTATE_HH
-#define IVEHICLESTATE_HH
-struct IVehicleState
-{
+  enum struct State
+    {
+      APPROACH,STOPPED,START
+    };
   dzn::port::meta dzn_meta;
   struct
     {
-      dzn::in::event<::State ()> updateState;
+      dzn::in::event<::IApproachState::State ()> updateState;
     } in;
   struct
     {
@@ -45,26 +27,26 @@ struct IVehicleState
   bool dzn_share_p;
   char const* dzn_label;
   int dzn_state;
-  ::State state;
-  IVehicleState (dzn::port::meta const& m);
+  ::IApproachState::State state;
+  IApproachState (dzn::port::meta const& m);
   template <typename Component>
-  IVehicleState (dzn::port::meta const& m, Component* that)
+  IApproachState (dzn::port::meta const& m, Component* that)
   : dzn_meta (m)
   , dzn_share_p (true)
   , dzn_label ("")
   , dzn_state ()
-  , state (::State::APPROACH)
+  , state (::IApproachState::State::APPROACH)
     {
       in.updateState.set (that, this, "updateState");
     }
-  virtual ~IVehicleState ();
+  virtual ~IApproachState ();
   void dzn_event (char const* event);
   void dzn_update_state (dzn::locator const& locator);
   void dzn_check_bindings ();
 };
 namespace dzn
 {
-  inline void connect (::IVehicleState& provide, ::IVehicleState& require)
+  inline void connect (::IApproachState& provide, ::IApproachState& require)
     {
       require.in.updateState = provide.in.updateState;
       provide.dzn_meta.require = require.dzn_meta.require;
@@ -72,7 +54,22 @@ namespace dzn
       provide.dzn_share_p = require.dzn_share_p = provide.dzn_share_p && require.dzn_share_p;
     }
 }
-#endif // IVEHICLESTATE_HH
+namespace dzn
+{
+  char const* to_cstr (::IApproachState::State v);
+  template <>
+  std::string to_string (::IApproachState::State v);
+}
+template <typename Char, typename Traits>
+std::basic_ostream<Char, Traits> & operator << (std::basic_ostream<Char, Traits>& os, ::IApproachState::State v)
+{
+  return os << dzn::to_cstr (v);
+}
+namespace dzn
+{
+  ::IApproachState::State to_IApproachState_State (std::string s);
+}
+#endif // IAPPROACHSTATE_HH
 #ifndef IAPPROACH_HH
 #define IAPPROACH_HH
 struct IApproach
@@ -196,22 +193,22 @@ namespace dzn
     }
 }
 #endif // ISTART_HH
-#ifndef MODIFYPATHVELOCITY_HH
-#define MODIFYPATHVELOCITY_HH
-struct ModifyPathVelocity: public dzn::component
+#ifndef APPROACHSTATEHANDLER_HH
+#define APPROACHSTATEHANDLER_HH
+struct ApproachStateHandler: public dzn::component
 {
   dzn::meta dzn_meta;
   dzn::runtime& dzn_runtime;
   dzn::locator const& dzn_locator;
-  ::State* dzn_reply_State;
-  std::function<void ()>* dzn_out_vehicleState;
-  ::IVehicleState vehicleState;
+  ::IApproachState::State* dzn_reply_IApproachState_State;
+  std::function<void ()>* dzn_out_approachState;
+  ::IApproachState approachState;
   ::IApproach approach;
   ::IStart start;
   ::IStopped stop;
-  ModifyPathVelocity (dzn::locator const& locator);
+  ApproachStateHandler (dzn::locator const& locator);
   private:
-  void vehicleState_updateState ();
+  void approachState_updateState ();
 };
-#endif // MODIFYPATHVELOCITY_HH
+#endif // APPROACHSTATEHANDLER_HH
 // version 2.18.0
