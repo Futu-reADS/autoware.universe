@@ -120,6 +120,13 @@ private:
   dzn::runtime runtime;
   ApproachStateHandler approachStateHandler;
 
+  std::shared_ptr<PathWithLaneId> path; // Changed to shared_ptr for managed memory
+  geometry_msgs::msg::Pose stop_pose; // Ensure this type matches your needs
+  size_t stop_line_seg_idx = 0; // Example initialization, adjust as necessary
+  size_t stop_point_idx = 0; // Ensure this is updated appropriately
+  double signed_arc_dist_to_stop_point = 0.0; // Example initialization
+  // Declare stop_reason according to its actual type, here using a placeholder
+  tier4_planning_msgs::msg::StopReason stop_reason; // Placeholder, adjust according to the actual type
 };
 }  // namespace behavior_velocity_planner
 
