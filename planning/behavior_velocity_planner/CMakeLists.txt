@@ -36,15 +36,29 @@ ament_auto_add_library(behavior_velocity_planner SHARED
   src/utilization/path_utilization.cpp
   src/utilization/util.cpp
   src/utilization/debug.cpp
+  src/runtime.cc
+  src/pump.cc
+  src/std-async.cc
   ${scene_modules_src}
 )
 
+
+
+
+# Include the Dezyne header files directory
 target_include_directories(behavior_velocity_planner
   SYSTEM PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/scene_module/stop_line>
     ${BOOST_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
     ${tf2_geometry_msgs_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/dzn" # Added line to include the dzn directory
+)
+
+target_include_directories(behavior_velocity_planner PUBLIC
+  "${CMAKE_CURRENT_SOURCE_DIR}/src" # Adds the src directory to the include path
 )
 
 ament_target_dependencies(behavior_velocity_planner
@@ -53,6 +67,9 @@ ament_target_dependencies(behavior_velocity_planner
   PCL
   message_filters
 )
+
+
+
 
 target_link_libraries(behavior_velocity_planner ${PCL_LIBRARIES})
 

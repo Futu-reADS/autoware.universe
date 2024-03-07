@@ -32,6 +32,10 @@
 
 #include <lanelet2_core/LaneletMap.h>
 #include <lanelet2_routing/RoutingGraph.h>
+#include "scene_dezyne.hh"
+
+#include <dzn/locator.hh>
+#include <dzn/runtime.hh>
 
 namespace behavior_velocity_planner
 {
@@ -108,6 +112,11 @@ private:
 
   std::shared_ptr<motion_utils::VirtualWallMarkerCreator> virtual_wall_marker_creator_ =
     std::make_shared<motion_utils::VirtualWallMarkerCreator>();
+
+  dzn::locator locator;
+  dzn::runtime runtime;
+  ModifyPathVelocity ModifyPathVelocity_inst;
+
 };
 }  // namespace behavior_velocity_planner
 

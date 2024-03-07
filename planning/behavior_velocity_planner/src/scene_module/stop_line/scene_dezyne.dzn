@@ -1,0 +1,75 @@
+
+
+enum State {APPROACH, STOPPED, START};
+
+interface IVehicleState
+{
+    in State updateState();
+
+    behavior {
+        State state = State.APPROACH;
+        on updateState: {
+            state = State.STOPPED;
+            reply(state);
+        }
+        on updateState: {
+            state = State.APPROACH;
+            reply(state);
+        }
+        on updateState: {
+            state = State.START;
+            reply(state);
+        }
+    } 
+}
+
+interface IApproach {
+    in void ApproachStuff();
+    
+    behavior {
+        
+        on ApproachStuff: {}
+    }
+}
+
+interface IStopped {
+    in void StoppedStuff();
+    behavior {
+        on StoppedStuff: {}
+    }
+}
+
+interface IStart {
+    in void StartStuff();
+    behavior {
+        on StartStuff: {}
+    }
+}
+
+component ModifyPathVelocity {
+    provides IVehicleState vehicleState;
+    requires IApproach approach;
+    requires IStart start;
+    requires IStopped stop;
+
+    behavior {
+
+        on vehicleState.updateState(): {
+            [vehicleState.state.APPROACH] {
+                approach.ApproachStuff();
+                reply(State.STOPPED);
+            }
+            [vehicleState.state.STOPPED] {
+                stop.StoppedStuff();
+                reply(State.START);
+                
+            }
+            [vehicleState.state.START] {
+                start.StartStuff();
+                reply(State.APPROACH);
+            }
+            
+        }
+
+    }
+}
