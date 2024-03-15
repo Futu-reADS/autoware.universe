@@ -32,6 +32,10 @@
 
 #include <lanelet2_core/LaneletMap.h>
 #include <lanelet2_routing/RoutingGraph.h>
+#include "scene_dezyne.hh"
+
+#include <dzn/locator.hh>
+#include <dzn/runtime.hh>
 
 namespace behavior_velocity_planner
 {
@@ -40,7 +44,8 @@ class StopLineModule : public SceneModuleInterface
   using StopLineWithLaneId = std::pair<lanelet::ConstLineString3d, int64_t>;
 
 public:
-  enum class State { APPROACH, STOPPED, START };
+  // Dezyne model already provides State enum, no need to double
+  // enum class State { APPROACH, STOPPED, START };
 
   struct SegmentIndexWithPose
   {
@@ -98,7 +103,9 @@ private:
   lanelet::ConstLineString3d stop_line_;
 
   // State machine
-  State state_;
+  // I intentionally moved State enum inside IApproachState interface to make sure we 
+  // this specific enum, and no one the many other definitions
+  IApproachState::State state_;
 
   // Parameter
   PlannerParam planner_param_;
@@ -108,6 +115,18 @@ private:
 
   std::shared_ptr<motion_utils::VirtualWallMarkerCreator> virtual_wall_marker_creator_ =
     std::make_shared<motion_utils::VirtualWallMarkerCreator>();
+
+  dzn::locator locator;
+  dzn::runtime runtime;
+  ApproachStateHandler approachStateHandler;
+
+  std::shared_ptr<PathWithLaneId> path; // Changed to shared_ptr for managed memory
+  geometry_msgs::msg::Pose stop_pose; // Ensure this type matches your needs
+  size_t stop_line_seg_idx = 0; // Example initialization, adjust as necessary
+  size_t stop_point_idx = 0; // Ensure this is updated appropriately
+  double signed_arc_dist_to_stop_point = 0.0; // Example initialization
+  // Declare stop_reason according to its actual type, here using a placeholder
+  tier4_planning_msgs::msg::StopReason stop_reason; // Placeholder, adjust according to the actual type
 };
 }  // namespace behavior_velocity_planner
 
