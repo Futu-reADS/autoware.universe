@@ -1,0 +1,38 @@
+/* runtime/c++/dzn/config.hh.  Generated from config.hh.in by configure.  */
+// dzn-runtime -- Dezyne runtime library
+//
+// Copyright © 2023 Janneke Nieuwenhuizen <janneke@gnu.org>
+//
+// This file is part of dzn-runtime.
+//
+// dzn-runtime is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as
+// published by the Free Software Foundation, either version 3 of the
+// License, or (at your option) any later version.
+//
+// dzn-runtime is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with dzn-runtime.  If not, see <http://www.gnu.org/licenses/>.
+//
+// Commentary:
+//
+// Code:
+
+#ifndef DZN_CONFIG_HH
+#define DZN_CONFIG_HH
+
+#ifndef DZN_VERSION_ASSERT
+/* Define whether to enable the dzn version assert. */
+#define DZN_VERSION_ASSERT 1
+#endif
+
+#ifndef HAVE_BOOST_COROUTINE
+/* Define if you have the boost coroutine library. */
+#define HAVE_BOOST_COROUTINE 1
+#endif
+
+#endif /* DZN_CONFIG_HH */

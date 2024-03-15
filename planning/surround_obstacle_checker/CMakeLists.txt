@@ -13,9 +13,15 @@ include_directories(
     ${EIGEN3_INCLUDE_DIR}
 )
 
+include_directories(include src)
+
 ament_auto_add_library(${PROJECT_NAME} SHARED
   src/debug_marker.cpp
   src/node.cpp
+  src/runtime.cc
+  src/pump.cc
+  src/std-async.cc
+  src/surround_obstacle_checker_dezyne.cc
 )
 
 target_link_libraries(${PROJECT_NAME}

@@ -41,6 +41,11 @@
 #include <utility>
 #include <vector>
 
+#include "surround_obstacle_checker_dezyne.hh"
+
+#include <dzn/locator.hh>
+#include <dzn/runtime.hh>
+
 namespace surround_obstacle_checker
 {
 
@@ -89,6 +94,10 @@ private:
   boost::optional<Obstacle> getNearestObstacleByPointCloud() const;
 
   boost::optional<Obstacle> getNearestObstacleByDynamicObject() const;
+
+  dzn::locator locator;
+  dzn::runtime runtime;
+  surroundObstacleChecker surround_obstacle_checker_instance;
 
   boost::optional<geometry_msgs::msg::TransformStamped> getTransform(
     const std::string & source, const std::string & target, const rclcpp::Time & stamp,
