@@ -6,23 +6,13 @@ interface IStoppingState
   behavior
   {
     State state = State.STOP;
-    [state.STOP] {
+    [state.STOP || state.PASS] {
       on stoppingState: {
         state = State.PASS;
         reply(state);
       }
       on stoppingState: {
         state = State.STOP;
-        reply(state);
-      }
-    }
-    [state.PASS] {
-      on stoppingState: {
-        state = State.STOP;
-        reply(state);
-      }
-      on stoppingState: {
-        state = State.PASS;
         reply(state);
       }
     }
@@ -77,63 +67,52 @@ component surroundObstacleChecker {
   requires IStatus status;
   requires ILastObstacleTime lastObstacleTime;
 
+  
+
   behavior {
     on setStoppingState.stoppingState(): {
-      [setStoppingState.state.PASS] {
-        if (status.getVehicleStoppingStatus()) {
+      // I would read the parameters once
+      IStoppingState.State currentState = setStoppingState.state;
+      IStoppingState.State nextState = getStoppingState.stoppingState();
+      bool vehicleStopping = status.getVehicleStoppingStatus();
+
+      if(currentState.PASS && vehicleStopping) {
           if (status.getObstacleStatusDuringPass()){
             lastObstacleTime.setLastObstacleTime();
             velocityLimit.stopVelocityLimitPub();
-            reply(IStoppingState.State.STOP);
+            nextState = IStoppingState.State.STOP;
           }
           else {
-            if (getStoppingState.stoppingState() != IStoppingState.State.STOP) {
-              reply(getStoppingState.stoppingState());
-            }
-            else {
-              if (status.getElaspedTimeClearance()) {
-                velocityLimit.stopVelocityLimitPub();
-                reply(IStoppingState.State.STOP);
-              }
-              else {
-                lastObstacleTime.resetLastObstacleTime();
-                reply(getStoppingState.stoppingState());
-              }
+            if (nextState == IStoppingState.State.STOP && !status.getElaspedTimeClearance()) {
+              lastObstacleTime.resetLastObstacleTime();
+            } else if (nextState == IStoppingState.State.STOP) {
+              velocityLimit.stopVelocityLimitPub();
             }
           }
-        }
-        else {
-          reply(getStoppingState.stoppingState());
-        }
       }
-      [setStoppingState.state.STOP] {
-        if (status.getVehicleStoppingStatus()) {
+      else if(currentState.STOP) {
+        if (vehicleStopping) {
           if (status.getObstacleStatusDuringStop()){
             lastObstacleTime.setLastObstacleTime();
-            reply(getStoppingState.stoppingState());
           }
           else {
-            if (getStoppingState.stoppingState() != IStoppingState.State.STOP) {
+            if (!status.getElaspedTimeClearance()) {
+              lastObstacleTime.resetLastObstacleTime();
               velocityLimit.passVelocityLimitClearPub();
-              reply(IStoppingState.State.PASS);
+              nextState = IStoppingState.State.PASS;
             }
-            else {
-              if (status.getElaspedTimeClearance()) {
-                reply(getStoppingState.stoppingState());
-              }
-              else {
-                lastObstacleTime.resetLastObstacleTime();
-                velocityLimit.passVelocityLimitClearPub();
-                reply(IStoppingState.State.PASS);
-              }
+            else if (nextState != IStoppingState.State.STOP || status.getElaspedTimeClearance()) {
+              velocityLimit.passVelocityLimitClearPub();
+              nextState = IStoppingState.State.PASS;
             }
           }
         }
         else {
           velocityLimit.passVelocityLimitClearPub();
-          reply(IStoppingState.State.PASS);
+          nextState = IStoppingState.State.PASS;
         }
       }
+      reply(nextState);
     }
   }
 }
