@@ -60,6 +60,42 @@ interface ILastObstacleTime
   }
 }
 
+interface IstopRequired {
+  in bool Required();
+
+  behavior {
+    on Required: reply(true);
+    on Required: reply(false);
+  }
+}
+
+component isStopRequired {
+
+  provides IstopRequired stopRequired;
+  requires IStatus status;
+  requires ILastObstacleTime lastObstacleTime;
+  requires IStoppingState getStoppingState;
+
+  behavior {
+    on stopRequired.Required(): {
+      if (!status.getVehicleStoppingStatus())
+        reply(false);
+      else if (status.getObstacleStatusDuringPass()) {
+        lastObstacleTime.setLastObstacleTime();
+        reply(true);
+      } else if(getStoppingState.stoppingState() == IStoppingState.State.STOP)
+        reply(false);
+      else if(status.getElaspedTimeClearance())
+        reply(true);
+      else {
+        lastObstacleTime.resetLastObstacleTime();
+        reply(false);
+      }
+    }
+  }
+}
+
+
 component surroundObstacleChecker {
   provides IStoppingState setStoppingState;
   requires IStoppingState getStoppingState;
