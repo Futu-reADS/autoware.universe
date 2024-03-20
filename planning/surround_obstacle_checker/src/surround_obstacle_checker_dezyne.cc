@@ -62,8 +62,8 @@ namespace dzn
     {
       switch (v)
         {
-          case ::IStoppingState::State::STOP: return "State:STOP";
           case ::IStoppingState::State::PASS: return "State:PASS";
+          case ::IStoppingState::State::STOP: return "State:STOP";
         }
       return "";
     }
@@ -80,8 +80,8 @@ namespace dzn
   to_IStoppingState_State (std::string s)
     {
       static std::map<std::string, ::IStoppingState::State> m =   {
-            {"State:STOP", ::IStoppingState::State::STOP},
-            {"State:PASS", ::IStoppingState::State::PASS}};
+            {"State:PASS", ::IStoppingState::State::PASS},
+            {"State:STOP", ::IStoppingState::State::STOP}};
       return m.at (s);
     }
 }

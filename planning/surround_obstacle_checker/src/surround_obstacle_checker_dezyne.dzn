@@ -1,9 +1,11 @@
 interface IStoppingState
 {
-  in State stoppingState();
   // When Dezyne 2.19 will be released we would just pass state_ as a reference 
   //stoppingState(State & state)
-  enum State {STOP, PASS};
+  in State stoppingState();
+  
+  // make sure to use same order of enum fields (static_cast will check field number)
+  enum State {PASS, STOP};
 
   behavior
   {

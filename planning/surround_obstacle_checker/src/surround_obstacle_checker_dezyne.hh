@@ -14,7 +14,7 @@ struct IStoppingState
 {
   enum struct State
     {
-      STOP,PASS
+      PASS,STOP
     };
   dzn::port::meta dzn_meta;
   struct

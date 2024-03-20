@@ -232,7 +232,7 @@ SurroundObstacleCheckerNode::SurroundObstacleCheckerNode(const rclcpp::NodeOptio
         !nearest_obstacle ? false
                           : nearest_obstacle.get().first < node_param_.surround_check_distance;
 
-    return static_cast<bool>(is_obstacle_found);
+    return is_obstacle_found;
   };
 
 
@@ -243,12 +243,12 @@ SurroundObstacleCheckerNode::SurroundObstacleCheckerNode(const rclcpp::NodeOptio
         !nearest_obstacle
           ? false
           : nearest_obstacle.get().first < node_param_.surround_check_recover_distance;
-
-    return static_cast<bool>(is_obstacle_found);
+    // Static cast is (probably) not needed for primitive types
+    return is_obstacle_found;
   };
 
   surround_obstacle_checker_instance.status.in.getVehicleStoppingStatus = [this](){
-    return static_cast<bool>(vehicle_stop_checker_->isVehicleStopped());
+    return vehicle_stop_checker_->isVehicleStopped();
   };
 
   surround_obstacle_checker_instance.status.in.getElaspedTimeClearance = [this](){
@@ -259,8 +259,7 @@ SurroundObstacleCheckerNode::SurroundObstacleCheckerNode(const rclcpp::NodeOptio
         ret = true;
       }
     }
-
-    return static_cast<bool>(ret);
+    return ret;
   };
 
   surround_obstacle_checker_instance.lastObstacleTime.in.setLastObstacleTime = [this](){
