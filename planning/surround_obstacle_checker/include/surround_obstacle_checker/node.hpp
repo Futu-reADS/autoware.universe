@@ -60,7 +60,6 @@ using vehicle_info_util::VehicleInfo;
 
 using Obstacle = std::pair<double /* distance */, geometry_msgs::msg::Point>;
 
-enum class State { PASS, STOP };
 
 class SurroundObstacleCheckerNode : public rclcpp::Node
 {
@@ -134,7 +133,7 @@ private:
   PredictedObjects::ConstSharedPtr object_ptr_;
 
   // State Machine
-  State state_ = State::PASS;
+  IStoppingState::State state_ = IStoppingState::State::PASS;
   std::shared_ptr<const rclcpp::Time> last_obstacle_found_time_;
 };
 }  // namespace surround_obstacle_checker

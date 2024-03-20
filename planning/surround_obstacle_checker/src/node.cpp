@@ -296,7 +296,8 @@ void SurroundObstacleCheckerNode::onTimer()
 
   const auto nearest_obstacle = getNearestObstacle();
 
-  state_ = static_cast<decltype(state_)>(surround_obstacle_checker_instance.setStoppingState.in.stoppingState());
+  // No need to use static_casr since we are reusing IStoppingState::State from Dezyne model
+  state_ = surround_obstacle_checker_instance.setStoppingState.in.stoppingState();
 
   /*
   const auto is_vehicle_stopped = vehicle_stop_checker_->isVehicleStopped();
@@ -358,7 +359,7 @@ void SurroundObstacleCheckerNode::onTimer()
   }
 
   diagnostic_msgs::msg::DiagnosticStatus no_start_reason_diag;
-  if (state_ == State::STOP) {
+  if (state_ == IStoppingState::State::STOP) {
     debug_ptr_->pushPose(odometry_ptr_->pose.pose, PoseType::NoStart);
     no_start_reason_diag = makeStopReasonDiag("obstacle", odometry_ptr_->pose.pose);
   }
