@@ -35,7 +35,7 @@ struct IStoppingState
   , dzn_share_p (true)
   , dzn_label ("")
   , dzn_state ()
-  , state (::IStoppingState::State::STOP)
+  , state (::IStoppingState::State::PASS)
     {
       in.stoppingState.set (that, this, "stoppingState");
     }
@@ -219,13 +219,13 @@ struct surroundObstacleChecker: public dzn::component
   bool* dzn_reply_bool;
   std::function<void ()>* dzn_out_setStoppingState;
   ::IStoppingState setStoppingState;
-  ::IStoppingState getStoppingState;
   ::IVelocityLimit velocityLimit;
   ::IStatus status;
   ::ILastObstacleTime lastObstacleTime;
   surroundObstacleChecker (dzn::locator const& locator);
   private:
   void setStoppingState_stoppingState ();
+  bool is_stop_required (bool is_obstacle_found, bool is_vehicle_stopped);
 };
 #endif // SURROUNDOBSTACLECHECKER_HH
 // version 2.18.1

@@ -11,7 +11,7 @@ IStoppingState::IStoppingState (dzn::port::meta const& m)
 , dzn_share_p (true)
 , dzn_label ("")
 , dzn_state ()
-, state (::IStoppingState::State::STOP)
+, state (::IStoppingState::State::PASS)
 {}
 IStoppingState::~IStoppingState ()= default;
 void
@@ -32,12 +32,12 @@ IStoppingState::dzn_update_state (dzn::locator const& locator)
       break;
       case 2337162324u:
       //1:State:PASS
-      dzn_state = 2;
+      dzn_state = 0;
       state = IStoppingState::State::PASS;
       break;
       case 601847139u:
       //1:State:STOP
-      dzn_state = 0;
+      dzn_state = 2;
       state = IStoppingState::State::STOP;
       break;
       case 1867015163u:
@@ -234,9 +234,6 @@ surroundObstacleChecker::surroundObstacleChecker (dzn::locator const& locator)
           setStoppingState.dzn_check_bindings ();
         }, [this] ()
         {
-          getStoppingState.dzn_check_bindings ();
-        }, [this] ()
-        {
           velocityLimit.dzn_check_bindings ();
         }, [this] ()
         {
@@ -248,12 +245,11 @@ surroundObstacleChecker::surroundObstacleChecker (dzn::locator const& locator)
 , dzn_runtime (locator.get<dzn::runtime> ())
 , dzn_locator (locator)
 , setStoppingState ({  {"setStoppingState",&setStoppingState,this,&dzn_meta},  {"setStoppingState",0,0,0}},this)
-, getStoppingState ({  {"getStoppingState",0,0,0},  {"getStoppingState",&getStoppingState,this,&dzn_meta}},this)
 , velocityLimit ({  {"velocityLimit",0,0,0},  {"velocityLimit",&velocityLimit,this,&dzn_meta}},this)
 , status ({  {"status",0,0,0},  {"status",&status,this,&dzn_meta}},this)
 , lastObstacleTime ({  {"lastObstacleTime",0,0,0},  {"lastObstacleTime",&lastObstacleTime,this,&dzn_meta}},this)
 {
-  this->dzn_meta.require =   {&getStoppingState.dzn_meta,&velocityLimit.dzn_meta,&status.dzn_meta,&lastObstacleTime.dzn_meta};
+  this->dzn_meta.require =   {&velocityLimit.dzn_meta,&status.dzn_meta,&lastObstacleTime.dzn_meta};
   this->dzn_runtime.performs_flush (this) = true;
   this->setStoppingState.in.stoppingState = [this] ()
     {
@@ -266,60 +262,64 @@ surroundObstacleChecker::surroundObstacleChecker (dzn::locator const& locator)
 void
 surroundObstacleChecker::setStoppingState_stoppingState ()
 {
-  ::IStoppingState::State currentState = setStoppingState.state;
-  ::IStoppingState::State nextState = this->getStoppingState.in.stoppingState ();
-  bool vehicleStopping = this->status.in.getVehicleStoppingStatus ();
-  if ((currentState == ::IStoppingState::State::PASS) && vehicleStopping)
+  if (setStoppingState.state == ::IStoppingState::State::PASS)
     {
-      if (this->status.in.getObstacleStatusDuringPass ())
+      bool dzn_tmp0 = this->status.in.getVehicleStoppingStatus ();
+      if (!this->is_stop_required (dzn_tmp0, this->status.in.getObstacleStatusDuringPass ()))
         {
-          this->lastObstacleTime.in.setLastObstacleTime ();
-          this->velocityLimit.in.stopVelocityLimitPub ();
-          nextState = ::IStoppingState::State::STOP;
+          *this->dzn_reply_IStoppingState_State = setStoppingState.state;
+          if ((*this->dzn_out_setStoppingState)) (*this->dzn_out_setStoppingState) ();
+          (*this->dzn_out_setStoppingState) = nullptr;
         }
       else
         {
-          if (nextState == ::IStoppingState::State::STOP && !this->status.in.getElaspedTimeClearance ())
-            {
-              this->lastObstacleTime.in.resetLastObstacleTime ();
-            }
-          else if (nextState == ::IStoppingState::State::STOP)
-            {
-              this->velocityLimit.in.stopVelocityLimitPub ();
-            }
+          this->velocityLimit.in.stopVelocityLimitPub ();
+          *this->dzn_reply_IStoppingState_State = ::IStoppingState::State::STOP;
+          if ((*this->dzn_out_setStoppingState)) (*this->dzn_out_setStoppingState) ();
+          (*this->dzn_out_setStoppingState) = nullptr;
         }
     }
-  else if (currentState == ::IStoppingState::State::STOP)
+  else if (setStoppingState.state == ::IStoppingState::State::STOP)
     {
-      if (vehicleStopping)
+      bool dzn_tmp1 = this->status.in.getVehicleStoppingStatus ();
+      if (this->is_stop_required (dzn_tmp1, this->status.in.getObstacleStatusDuringStop ()))
         {
-          if (this->status.in.getObstacleStatusDuringStop ())
-            {
-              this->lastObstacleTime.in.setLastObstacleTime ();
-            }
-          else
-            {
-              if (!this->status.in.getElaspedTimeClearance ())
-                {
-                  this->lastObstacleTime.in.resetLastObstacleTime ();
-                  this->velocityLimit.in.passVelocityLimitClearPub ();
-                  nextState = ::IStoppingState::State::PASS;
-                }
-              else if (nextState != ::IStoppingState::State::STOP || this->status.in.getElaspedTimeClearance ())
-                {
-                  this->velocityLimit.in.passVelocityLimitClearPub ();
-                  nextState = ::IStoppingState::State::PASS;
-                }
-            }
+          *this->dzn_reply_IStoppingState_State = setStoppingState.state;
+          if ((*this->dzn_out_setStoppingState)) (*this->dzn_out_setStoppingState) ();
+          (*this->dzn_out_setStoppingState) = nullptr;
         }
       else
         {
           this->velocityLimit.in.passVelocityLimitClearPub ();
-          nextState = ::IStoppingState::State::PASS;
+          *this->dzn_reply_IStoppingState_State = ::IStoppingState::State::PASS;
+          if ((*this->dzn_out_setStoppingState)) (*this->dzn_out_setStoppingState) ();
+          (*this->dzn_out_setStoppingState) = nullptr;
         }
     }
-  *this->dzn_reply_IStoppingState_State = nextState;
-  if ((*this->dzn_out_setStoppingState)) (*this->dzn_out_setStoppingState) ();
-  (*this->dzn_out_setStoppingState) = nullptr;
+  else if (!(setStoppingState.state == ::IStoppingState::State::STOP) && !(setStoppingState.state == ::IStoppingState::State::PASS)) this->dzn_locator.get<dzn::illegal_handler> ().handle (LOCATION);
+  else this->dzn_locator.get<dzn::illegal_handler> ().handle (LOCATION);
+}
+bool
+surroundObstacleChecker::is_stop_required (bool is_obstacle_found, bool is_vehicle_stopped)
+{
+  if (is_vehicle_stopped)
+    {
+      return false;
+    }
+  if (is_obstacle_found)
+    {
+      this->lastObstacleTime.in.setLastObstacleTime ();
+      return true;
+    }
+  if (setStoppingState.state == ::IStoppingState::State::STOP)
+    {
+      return false;
+    }
+  if (this->status.in.getElaspedTimeClearance ())
+    {
+      return true;
+    }
+  this->lastObstacleTime.in.resetLastObstacleTime ();
+  return false;
 }
 // version 2.18.1

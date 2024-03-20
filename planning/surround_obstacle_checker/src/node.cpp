@@ -199,9 +199,9 @@ SurroundObstacleCheckerNode::SurroundObstacleCheckerNode(const rclcpp::NodeOptio
 
 
 
-  surround_obstacle_checker_instance.getStoppingState.in.stoppingState = [this](){
-    return static_cast<decltype(IStoppingState::State::PASS)>(state_);
-  };
+  // surround_obstacle_checker_instance.getStoppingState.in.stoppingState = [this](){
+  //   return static_cast<decltype(IStoppingState::State::PASS)>(state_);
+  // };
 
   surround_obstacle_checker_instance.velocityLimit.in.stopVelocityLimitPub = [this](){
     auto velocity_limit = std::make_shared<VelocityLimit>();

@@ -1,11 +1,16 @@
 interface IStoppingState
 {
   in State stoppingState();
+  // When Dezyne 2.19 will be released we would just pass state_ as a reference 
+  //stoppingState(State & state)
   enum State {STOP, PASS};
 
   behavior
   {
-    State state = State.STOP;
+    // node.hpp initailizes State state_ = State::PASS
+    // so there is no need to add state_ getter since it's 
+    // only modified in SurroundObstacleCheckerNode
+    State state = State.PASS;
     [state.STOP || state.PASS] {
       on stoppingState: {
         state = State.PASS;
@@ -60,95 +65,58 @@ interface ILastObstacleTime
   }
 }
 
-interface IstopRequired {
-  in bool Required();
-
-  behavior {
-    on Required: reply(true);
-    on Required: reply(false);
-  }
-}
-
-component isStopRequired {
-
-  provides IstopRequired stopRequired;
-  requires IStatus status;
-  requires ILastObstacleTime lastObstacleTime;
-  requires IStoppingState getStoppingState;
-
-  behavior {
-    on stopRequired.Required(): {
-      if (!status.getVehicleStoppingStatus())
-        reply(false);
-      else if (status.getObstacleStatusDuringPass()) {
-        lastObstacleTime.setLastObstacleTime();
-        reply(true);
-      } else if(getStoppingState.stoppingState() == IStoppingState.State.STOP)
-        reply(false);
-      else if(status.getElaspedTimeClearance())
-        reply(true);
-      else {
-        lastObstacleTime.resetLastObstacleTime();
-        reply(false);
-      }
-    }
-  }
-}
-
 
 component surroundObstacleChecker {
   provides IStoppingState setStoppingState;
-  requires IStoppingState getStoppingState;
   requires IVelocityLimit velocityLimit;
   requires IStatus status;
   requires ILastObstacleTime lastObstacleTime;
 
-  
-
   behavior {
-    on setStoppingState.stoppingState(): {
-      // I would read the parameters once
-      IStoppingState.State currentState = setStoppingState.state;
-      IStoppingState.State nextState = getStoppingState.stoppingState();
-      bool vehicleStopping = status.getVehicleStoppingStatus();
-
-      if(currentState.PASS && vehicleStopping) {
-          if (status.getObstacleStatusDuringPass()){
-            lastObstacleTime.setLastObstacleTime();
-            velocityLimit.stopVelocityLimitPub();
-            nextState = IStoppingState.State.STOP;
-          }
-          else {
-            if (nextState == IStoppingState.State.STOP && !status.getElaspedTimeClearance()) {
-              lastObstacleTime.resetLastObstacleTime();
-            } else if (nextState == IStoppingState.State.STOP) {
-              velocityLimit.stopVelocityLimitPub();
-            }
-          }
+    [setStoppingState.state.PASS] {
+      on setStoppingState.stoppingState(): {
+        if (!is_stop_required(status.getVehicleStoppingStatus(), status.getObstacleStatusDuringPass())) {
+          reply(setStoppingState.state);
+        }
+        else {
+          velocityLimit.stopVelocityLimitPub();
+          reply(IStoppingState.State.STOP);
+        }
       }
-      else if(currentState.STOP) {
-        if (vehicleStopping) {
-          if (status.getObstacleStatusDuringStop()){
-            lastObstacleTime.setLastObstacleTime();
-          }
-          else {
-            if (!status.getElaspedTimeClearance()) {
-              lastObstacleTime.resetLastObstacleTime();
-              velocityLimit.passVelocityLimitClearPub();
-              nextState = IStoppingState.State.PASS;
-            }
-            else if (nextState != IStoppingState.State.STOP || status.getElaspedTimeClearance()) {
-              velocityLimit.passVelocityLimitClearPub();
-              nextState = IStoppingState.State.PASS;
-            }
-          }
+    }
+    [setStoppingState.state.STOP] {
+      on setStoppingState.stoppingState(): {
+        if (is_stop_required(status.getVehicleStoppingStatus(), status.getObstacleStatusDuringStop())) {
+          reply(setStoppingState.state);
         }
         else {
           velocityLimit.passVelocityLimitClearPub();
-          nextState = IStoppingState.State.PASS;
+          reply(IStoppingState.State.PASS);
         }
       }
-      reply(nextState);
+    }
+    // define helper function
+    bool is_stop_required(bool is_obstacle_found, bool is_vehicle_stopped) {
+      if (is_vehicle_stopped) {
+          return false;
+      }
+      if (is_obstacle_found) {
+        lastObstacleTime.setLastObstacleTime();
+        return true;
+      }
+      if (setStoppingState.state.STOP) {
+        return false;
+      }
+      
+      if(status.getElaspedTimeClearance()) {
+        return true;
+      }
+
+      lastObstacleTime.resetLastObstacleTime();
+      return false;
+        
     }
   }
 }
+
+  
