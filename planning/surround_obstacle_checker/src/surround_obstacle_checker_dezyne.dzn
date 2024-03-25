@@ -106,7 +106,7 @@ component surroundObstacleChecker {
         lastObstacleTime.setLastObstacleTime();
         return true;
       }
-      if (setStoppingState.state.STOP) {
+      if (setStoppingState.state.PASS) {
         return false;
       }
       
