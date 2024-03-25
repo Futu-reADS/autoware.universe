@@ -243,7 +243,6 @@ SurroundObstacleCheckerNode::SurroundObstacleCheckerNode(const rclcpp::NodeOptio
         !nearest_obstacle
           ? false
           : nearest_obstacle.get().first < node_param_.surround_check_recover_distance;
-    // Static cast is (probably) not needed for primitive types
     return is_obstacle_found;
   };
 

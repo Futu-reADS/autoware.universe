@@ -13,7 +13,7 @@ interface IStoppingState
     // so there is no need to add state_ getter since it's 
     // only modified in SurroundObstacleCheckerNode
     State state = State.PASS;
-    [state.STOP || state.PASS] {
+    [state.PASS || state.STOP] {
       on stoppingState: {
         state = State.PASS;
         reply(state);
@@ -88,7 +88,7 @@ component surroundObstacleChecker {
     }
     [setStoppingState.state.STOP] {
       on setStoppingState.stoppingState(): {
-        if (is_stop_required(status.getVehicleStoppingStatus(), status.getObstacleStatusDuringStop())) {
+        if (is_stop_required(status.getVehicleStoppingStatus(), status.getObstacleStatusDuringPass())) {
           reply(setStoppingState.state);
         }
         else {
@@ -98,8 +98,8 @@ component surroundObstacleChecker {
       }
     }
     // define helper function
-    bool is_stop_required(bool is_obstacle_found, bool is_vehicle_stopped) {
-      if (is_vehicle_stopped) {
+    bool is_stop_required(bool is_vehicle_stopped, bool is_obstacle_found) {
+      if (!is_vehicle_stopped) {
           return false;
       }
       if (is_obstacle_found) {

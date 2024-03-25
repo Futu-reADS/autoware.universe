@@ -282,7 +282,7 @@ surroundObstacleChecker::setStoppingState_stoppingState ()
   else if (setStoppingState.state == ::IStoppingState::State::STOP)
     {
       bool dzn_tmp1 = this->status.in.getVehicleStoppingStatus ();
-      if (this->is_stop_required (dzn_tmp1, this->status.in.getObstacleStatusDuringStop ()))
+      if (this->is_stop_required (dzn_tmp1, this->status.in.getObstacleStatusDuringPass ()))
         {
           *this->dzn_reply_IStoppingState_State = setStoppingState.state;
           if ((*this->dzn_out_setStoppingState)) (*this->dzn_out_setStoppingState) ();
@@ -300,9 +300,9 @@ surroundObstacleChecker::setStoppingState_stoppingState ()
   else this->dzn_locator.get<dzn::illegal_handler> ().handle (LOCATION);
 }
 bool
-surroundObstacleChecker::is_stop_required (bool is_obstacle_found, bool is_vehicle_stopped)
+surroundObstacleChecker::is_stop_required (bool is_vehicle_stopped, bool is_obstacle_found)
 {
-  if (is_vehicle_stopped)
+  if (!is_vehicle_stopped)
     {
       return false;
     }

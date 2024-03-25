@@ -225,7 +225,7 @@ struct surroundObstacleChecker: public dzn::component
   surroundObstacleChecker (dzn::locator const& locator);
   private:
   void setStoppingState_stoppingState ();
-  bool is_stop_required (bool is_obstacle_found, bool is_vehicle_stopped);
+  bool is_stop_required (bool is_vehicle_stopped, bool is_obstacle_found);
 };
 #endif // SURROUNDOBSTACLECHECKER_HH
 // version 2.18.1
