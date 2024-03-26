@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="input/pointcloud" default="/sensing/lidar/concatenated/pointcloud"/>
+  <arg name="input/pointcloud" default="/sensing/lidar/top/pointcloud"/>
   <arg name="output/objects" default="objects"/>
   <!-- using the following topics for testing-->
   <!-- <arg name="input/pointcloud" default="/sensing/lidar/top/rectified/pointcloud"/>

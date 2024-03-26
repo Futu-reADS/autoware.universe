@@ -1,5 +1,6 @@
 <launch>
-  <arg name="input_topic_name" default="pointcloud_raw_ex"/>
+  <!-- <arg name="input_topic_name" default="pointcloud_raw_ex"/> -->
+  <arg name="input_topic_name" default="hesai_points"/>
   <arg name="output_topic_name" default="blockage_diag/pointcloud"/>
   <arg name="horizontal_ring_id" default="18"/>
   <arg name="angle_range" default="[0.0, 360.0]"/>

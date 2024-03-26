@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="ground_segmentation_param_file" default="$(find-pkg-share ground_segmentation)/config/ray_ground_filter.param.yaml"/>
-  <arg name="input/pointcloud" default="/sensing/lidar/concatenated/pointcloud"/>
+  <arg name="input/pointcloud" default="/sensing/lidar/top/pointcloud"/>
   <arg name="output/pointcloud" default="/perception/obstacle_segmentation/pointcloud"/>
   <node pkg="ground_segmentation" exec="ray_ground_filter_node" name="ray_ground_filter_node" output="screen">
     <remap from="input" to="$(var input/pointcloud)"/>

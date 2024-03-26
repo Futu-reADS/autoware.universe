@@ -544,7 +544,7 @@ def generate_launch_description():
     add_launch_arg("use_multithread", "False")
     add_launch_arg("use_intra_process", "True")
     add_launch_arg("pointcloud_container_name", "pointcloud_container")
-    add_launch_arg("input/pointcloud", "/sensing/lidar/concatenated/pointcloud")
+    add_launch_arg("input/pointcloud", "/sensing/lidar/top/pointcloud")
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
