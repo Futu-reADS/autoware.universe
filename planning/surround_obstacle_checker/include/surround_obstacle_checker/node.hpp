@@ -42,6 +42,11 @@
 #include <utility>
 #include <vector>
 
+#include "surround_obstacle_checker_dezyne.hh"
+
+#include <dzn/locator.hh>
+#include <dzn/runtime.hh>
+
 namespace surround_obstacle_checker
 {
 
@@ -54,7 +59,6 @@ using vehicle_info_util::VehicleInfo;
 
 using Obstacle = std::pair<double /* distance */, geometry_msgs::msg::Point>;
 
-enum class State { PASS, STOP };
 
 class SurroundObstacleCheckerNode : public rclcpp::Node
 {
@@ -98,6 +102,9 @@ private:
 
   std::optional<Obstacle> getNearestObstacleByDynamicObject() const;
 
+  dzn::locator locator;
+  dzn::runtime runtime;
+  surroundObstacleChecker surround_obstacle_checker_instance;
   std::optional<geometry_msgs::msg::TransformStamped> getTransform(
     const std::string & source, const std::string & target, const rclcpp::Time & stamp,
     double duration_sec) const;
@@ -136,7 +143,7 @@ private:
   PredictedObjects::ConstSharedPtr object_ptr_;
 
   // State Machine
-  State state_ = State::PASS;
+  IStoppingState::State state_ = IStoppingState::State::PASS;
   std::shared_ptr<const rclcpp::Time> last_obstacle_found_time_;
 
   std::unique_ptr<tier4_autoware_utils::LoggerLevelConfigure> logger_configure_;

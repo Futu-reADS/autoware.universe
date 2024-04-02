@@ -47,6 +47,11 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include "surround_obstacle_checker_dezyne.hh"
+
+#include <dzn/locator.hh>
+#include <dzn/runtime.hh>
+
 namespace surround_obstacle_checker
 {
 namespace bg = boost::geometry;
@@ -149,7 +154,7 @@ Polygon2d createSelfPolygon(
 }  // namespace
 
 SurroundObstacleCheckerNode::SurroundObstacleCheckerNode(const rclcpp::NodeOptions & node_options)
-: Node("surround_obstacle_checker_node", node_options)
+: Node("surround_obstacle_checker_node", node_options), surround_obstacle_checker_instance(locator.set(runtime))
 {
   label_map_ = {
     {"unknown", ObjectClassification::UNKNOWN}, {"car", ObjectClassification::CAR},
@@ -238,6 +243,70 @@ SurroundObstacleCheckerNode::SurroundObstacleCheckerNode(const rclcpp::NodeOptio
     check_distances.at(0), check_distances.at(1), check_distances.at(2),
     node_param_.surround_check_hysteresis_distance, odometry_ptr_->pose.pose, this->get_clock(),
     *this);
+
+  surround_obstacle_checker_instance.velocityLimit.in.stopVelocityLimitPub = [this](){
+    auto velocity_limit = std::make_shared<VelocityLimit>();
+    velocity_limit->stamp = this->now();
+    velocity_limit->max_velocity = 0.0;
+    velocity_limit->use_constraints = false;
+    velocity_limit->sender = "surround_obstacle_checker";
+
+    pub_velocity_limit_->publish(*velocity_limit);
+
+    // do not start when there is a obstacle near the ego vehicle.
+    RCLCPP_WARN(get_logger(), "do not start because there is obstacle near the ego vehicle.");
+  };
+
+  surround_obstacle_checker_instance.velocityLimit.in.passVelocityLimitClearPub = [this](){
+    auto velocity_limit_clear_command = std::make_shared<VelocityLimitClearCommand>();
+    velocity_limit_clear_command->stamp = this->now();
+    velocity_limit_clear_command->command = true;
+    velocity_limit_clear_command->sender = "surround_obstacle_checker";
+
+    pub_clear_velocity_limit_->publish(*velocity_limit_clear_command);
+  };
+
+  surround_obstacle_checker_instance.status.in.getObstacleStatusDuringPass = [this](){
+
+    const auto nearest_obstacle = getNearestObstacle();
+    constexpr double epsilon = 1e-3;
+    const auto is_obstacle_found =
+        !nearest_obstacle ? false : nearest_obstacle.value().first < epsilon;
+    return is_obstacle_found;
+  };
+
+
+  surround_obstacle_checker_instance.status.in.getObstacleStatusDuringStop = [this](){
+
+    const auto nearest_obstacle = getNearestObstacle();
+    const auto is_obstacle_found =
+        !nearest_obstacle
+          ? false
+          : nearest_obstacle.value().first < node_param_.surround_check_hysteresis_distance;
+    return is_obstacle_found;
+  };
+
+  surround_obstacle_checker_instance.status.in.getVehicleStoppingStatus = [this](){
+    return vehicle_stop_checker_->isVehicleStopped();
+  };
+
+  surround_obstacle_checker_instance.status.in.getElaspedTimeClearance = [this](){
+    bool ret = false;
+    if (last_obstacle_found_time_) {
+      const auto elapsed_time = this->now() - *last_obstacle_found_time_;
+      if (elapsed_time.seconds() <= node_param_.state_clear_time) {
+        ret = true;
+      }
+    }
+    return ret;
+  };
+
+  surround_obstacle_checker_instance.lastObstacleTime.in.setLastObstacleTime = [this](){
+    last_obstacle_found_time_ = std::make_shared<const rclcpp::Time>(this->now());
+  };
+  surround_obstacle_checker_instance.lastObstacleTime.in.resetLastObstacleTime = [this](){
+    last_obstacle_found_time_ = {};
+  };
 }
 
 std::array<double, 3> SurroundObstacleCheckerNode::getCheckDistances(
@@ -310,6 +379,12 @@ void SurroundObstacleCheckerNode::onTimer()
   }
 
   const auto nearest_obstacle = getNearestObstacle();
+
+  // Getting stopping state from dezyne code
+  state_ = surround_obstacle_checker_instance.setStoppingState.in.stoppingState();
+
+  // Below commented code is handled by dezyne file and called with the help of above statement
+  /*
   const auto is_vehicle_stopped = vehicle_stop_checker_->isVehicleStopped();
 
   constexpr double epsilon = 1e-3;
@@ -363,13 +438,14 @@ void SurroundObstacleCheckerNode::onTimer()
     default:
       break;
   }
+  */
 
   if (nearest_obstacle) {
     debug_ptr_->pushObstaclePoint(nearest_obstacle.value().second, PointType::NoStart);
   }
 
   diagnostic_msgs::msg::DiagnosticStatus no_start_reason_diag;
-  if (state_ == State::STOP) {
+  if (state_ == IStoppingState::State::STOP) {
     debug_ptr_->pushPose(odometry_ptr_->pose.pose, PoseType::NoStart);
     no_start_reason_diag = makeStopReasonDiag("obstacle", odometry_ptr_->pose.pose);
   }
@@ -537,6 +613,8 @@ std::optional<geometry_msgs::msg::TransformStamped> SurroundObstacleCheckerNode:
   return transform_stamped;
 }
 
+// isStopRequired API is handled directly in dezyne code
+/*
 bool SurroundObstacleCheckerNode::isStopRequired(
   const bool is_obstacle_found, const bool is_vehicle_stopped)
 {
@@ -564,6 +642,7 @@ bool SurroundObstacleCheckerNode::isStopRequired(
   last_obstacle_found_time_ = {};
   return false;
 }
+*/
 
 }  // namespace surround_obstacle_checker
 

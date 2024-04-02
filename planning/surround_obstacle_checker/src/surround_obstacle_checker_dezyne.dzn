@@ -1,0 +1,124 @@
+interface IStoppingState
+{
+  // When Dezyne 2.19 will be released we would just pass state_ as a reference 
+  //stoppingState(State & state)
+  in State stoppingState();
+  
+  // make sure to use same order of enum fields (static_cast will check field number)
+  enum State {PASS, STOP};
+
+  behavior
+  {
+    // node.hpp initailizes State state_ = State::PASS
+    // so there is no need to add state_ getter since it's 
+    // only modified in SurroundObstacleCheckerNode
+    State state = State.PASS;
+    [state.PASS || state.STOP] {
+      on stoppingState: {
+        state = State.PASS;
+        reply(state);
+      }
+      on stoppingState: {
+        state = State.STOP;
+        reply(state);
+      }
+    }
+  }
+}
+
+interface IVelocityLimit {
+  in void stopVelocityLimitPub();
+  in void passVelocityLimitClearPub();
+  behavior {
+    on stopVelocityLimitPub: {}
+    on passVelocityLimitClearPub: {}
+  }
+}
+
+interface IStatus
+{
+  in bool getObstacleStatusDuringPass();
+  in bool getObstacleStatusDuringStop();
+  in bool getVehicleStoppingStatus();
+  in bool getElaspedTimeClearance();
+
+  behavior
+  {
+    on getObstacleStatusDuringPass: reply(true);
+    on getObstacleStatusDuringPass: reply(false);
+    on getObstacleStatusDuringStop: reply(true);
+    on getObstacleStatusDuringStop: reply(false);
+    on getVehicleStoppingStatus: reply(true);
+    on getVehicleStoppingStatus: reply(false);
+    on getElaspedTimeClearance: reply(true);
+    on getElaspedTimeClearance: reply(false);
+  }
+}
+
+interface ILastObstacleTime
+{
+  in void setLastObstacleTime();
+  in void resetLastObstacleTime();
+
+  behavior
+  {
+    on setLastObstacleTime: {}
+    on resetLastObstacleTime: {}
+  }
+}
+
+
+component surroundObstacleChecker {
+  provides IStoppingState setStoppingState;
+  requires IVelocityLimit velocityLimit;
+  requires IStatus status;
+  requires ILastObstacleTime lastObstacleTime;
+
+  behavior {
+    [setStoppingState.state.PASS] {
+      on setStoppingState.stoppingState(): {
+        if (!is_stop_required(status.getVehicleStoppingStatus(), status.getObstacleStatusDuringPass())) {
+          reply(setStoppingState.state);
+        }
+        else {
+          velocityLimit.stopVelocityLimitPub();
+          reply(IStoppingState.State.STOP);
+        }
+      }
+    }
+    [setStoppingState.state.STOP] {
+      on setStoppingState.stoppingState(): {
+        if (is_stop_required(status.getVehicleStoppingStatus(), status.getObstacleStatusDuringPass())) {
+          reply(setStoppingState.state);
+        }
+        else {
+          velocityLimit.passVelocityLimitClearPub();
+          reply(IStoppingState.State.PASS);
+        }
+      }
+    }
+    // define helper function
+    bool is_stop_required(bool is_vehicle_stopped, bool is_obstacle_found) {
+      if (!is_vehicle_stopped) {
+          return false;
+      }
+      if (is_obstacle_found) {
+        lastObstacleTime.setLastObstacleTime();
+        return true;
+      }
+      if (setStoppingState.state.PASS) {
+        return false;
+      }
+      
+      if(status.getElaspedTimeClearance()) {
+        return true;
+      }
+
+      lastObstacleTime.resetLastObstacleTime();
+      return false;
+        
+    }
+  }
+}
+
+  
