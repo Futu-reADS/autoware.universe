@@ -100,7 +100,7 @@ motion_utils::VirtualWalls StopLineModule::createVirtualWalls()
 {
   motion_utils::VirtualWalls virtual_walls;
 
-  if (debug_data_.stop_pose && (state_ == State::APPROACH || state_ == State::STOPPED)) {
+  if (debug_data_.stop_pose && (state_ == IApproachState::State::APPROACH || state_ == IApproachState::State::STOPPED)) {
     motion_utils::VirtualWall wall;
     wall.text = "stopline";
     wall.style = motion_utils::VirtualWallType::stop;

@@ -1,0 +1,105 @@
+
+
+interface IApproachState
+{
+    in State updateState();
+    enum State {APPROACH, STOPPED, START};
+    // This behavior makes sure we can change state only in specific way
+    behavior {
+        State state = State.APPROACH;
+        [state.APPROACH] {
+            on updateState: {
+                state = State.STOPPED;
+                reply(state);
+            }
+            on updateState: {
+                state = State.APPROACH;
+                reply(state);
+            }
+        }
+        [state.STOPPED] {
+            on updateState: {
+                state = State.STOPPED;
+                reply(state);
+            }
+            on updateState: {
+                state = State.START;
+                reply(state);
+            }
+        }
+        [state.START] {
+            on updateState: {
+                state = State.START;
+                reply(state);
+            }
+            on updateState: {
+                state = State.APPROACH;
+                reply(state);
+            }
+        }
+    } 
+}
+
+interface IApproach {
+    in void ApproachStuff();
+    in bool StopPointReached();
+    behavior {
+        on ApproachStuff: {}
+        on StopPointReached: reply(true);
+        on StopPointReached: reply(false);
+    }
+}
+
+interface IStopped {
+    in void StoppedStuff();
+    in bool StopTimeElapsed();
+    behavior {
+        on StoppedStuff: {}
+        on StopTimeElapsed: reply(true);
+        on StopTimeElapsed: reply(false);
+    }
+}
+
+interface IStart {
+    in IApproachState.State StartStuff();
+    behavior {
+        on StartStuff: {reply(IApproachState.State.START);}
+        on StartStuff: {reply(IApproachState.State.APPROACH);}
+    }
+}
+// ModifyPathVelocity
+component ApproachStateHandler {
+    provides IApproachState approachState;
+    requires IApproach approach;
+    requires IStart start;
+    requires IStopped stop;
+
+    behavior {
+        on approachState.updateState(): {
+            [approachState.state.APPROACH] {
+                approach.ApproachStuff();
+                if (approach.StopPointReached()) {
+                    reply(IApproachState.State.STOPPED);
+                }
+                else {
+                    reply(approachState.state);
+                }
+            }
+            [approachState.state.STOPPED] {
+                stop.StoppedStuff();
+                if (stop.StopTimeElapsed()) {
+                    reply(IApproachState.State.START);
+                }
+                else {
+                    reply(approachState.state);
+                }
+            }
+            [approachState.state.START] {
+                reply(start.StartStuff());
+                // reply(IApproachState.State.APPROACH);
+            }
+            
+        }
+
+    }
+}
