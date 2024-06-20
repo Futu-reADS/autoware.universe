@@ -63,18 +63,18 @@
     error_rate: 1.0
     timeout: 1.0
 
-- module: perception
-  mode: [online, logging_simulation]
-  type: launch
-  args:
-    node_name_suffix: obstacle_segmentation_pointcloud
-    topic: /perception/obstacle_segmentation/pointcloud
-    topic_type: sensor_msgs/msg/PointCloud2
-    best_effort: true
-    transient_local: false
-    warn_rate: 5.0
-    error_rate: 1.0
-    timeout: 1.0
+# - module: perception
+#   mode: [online, logging_simulation]
+#   type: launch
+#   args:
+#     node_name_suffix: obstacle_segmentation_pointcloud
+#     topic: /perception/obstacle_segmentation/pointcloud
+#     topic_type: sensor_msgs/msg/PointCloud2
+#     best_effort: true
+#     transient_local: false
+#     warn_rate: 5.0
+#     error_rate: 1.0
+#     timeout: 1.0
 
 - module: perception
   mode: [online, logging_simulation, planning_simulation]
