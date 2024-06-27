@@ -14,7 +14,7 @@
           <arg name="enable_all_modules_auto_mode" value="$(var enable_all_modules_auto_mode)"/>
           <arg name="is_simulation" value="$(var is_simulation)"/>
           <!-- This condition should be true if run_out module is enabled and its detection method is Points -->
-          <arg name="launch_compare_map_pipeline" value="false"/>
+          <arg name="launch_compare_map_pipeline" value="false"/> <!--default false YH-->
         </include>
       </group>
     </group>
