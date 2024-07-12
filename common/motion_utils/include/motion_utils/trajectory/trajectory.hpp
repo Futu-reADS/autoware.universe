@@ -438,9 +438,10 @@ double calcLongitudinalOffsetToSegment(
     if (throw_exception) {
       throw std::runtime_error(error_message);
     }
-    log_error(
+    /*log_error(
       error_message +
       " Return NaN since no_throw option is enabled. The maintainer must check the code.");
+    */ //commented out since it was filling up the logs with unnecessary error messages YH
     return std::nan("");
   }
 
