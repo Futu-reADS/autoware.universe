@@ -755,6 +755,8 @@ bool BlindSpotModule::isTargetObjectType(
 {
   if (
     object.classification.at(0).label ==
+      autoware_auto_perception_msgs::msg::ObjectClassification::UNKNOWN ||
+    object.classification.at(0).label ==
       autoware_auto_perception_msgs::msg::ObjectClassification::BICYCLE ||
     object.classification.at(0).label ==
       autoware_auto_perception_msgs::msg::ObjectClassification::PEDESTRIAN ||
