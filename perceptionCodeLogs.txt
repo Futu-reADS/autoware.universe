@@ -1,0 +1,349 @@
+diff --git a/common/object_recognition_utils/include/object_recognition_utils/transform.hpp b/common/object_recognition_utils/include/object_recognition_utils/transform.hpp
+index 31892853a8..ce811c7ec0 100644
+--- a/common/object_recognition_utils/include/object_recognition_utils/transform.hpp
++++ b/common/object_recognition_utils/include/object_recognition_utils/transform.hpp
+@@ -79,9 +79,10 @@ bool transformObjects(
+   T & output_msg)
+ {
+   output_msg = input_msg;
+-
++  //RCLCPP_WARN(rclcpp::get_logger("object_recognition_utils:"), "MIYAGI SAN 100 .");
+   // transform to world coordinate
+   if (input_msg.header.frame_id != target_frame_id) {
++    //RCLCPP_WARN(rclcpp::get_logger("object_recognition_utils:"), "MIYAGI SAN 200 .");
+     output_msg.header.frame_id = target_frame_id;
+     tf2::Transform tf_target2objects_world;
+     tf2::Transform tf_target2objects;
+@@ -90,16 +91,19 @@ bool transformObjects(
+       const auto ros_target2objects_world = detail::getTransform(
+         tf_buffer, input_msg.header.frame_id, target_frame_id, input_msg.header.stamp);
+       if (!ros_target2objects_world) {
++        //RCLCPP_WARN(rclcpp::get_logger("object_recognition_utils:"), "MIYAGI SAN 300 .");
+         return false;
+       }
+       tf2::fromMsg(*ros_target2objects_world, tf_target2objects_world);
+     }
+     for (auto & object : output_msg.objects) {
++      //RCLCPP_WARN(rclcpp::get_logger("object_recognition_utils:"), "MIYAGI SAN 400 .");
+       tf2::fromMsg(object.kinematics.pose_with_covariance.pose, tf_objects_world2objects);
+       tf_target2objects = tf_target2objects_world * tf_objects_world2objects;
+       tf2::toMsg(tf_target2objects, object.kinematics.pose_with_covariance.pose);
+       // TODO(yukkysaito) transform covariance
+     }
++    //RCLCPP_WARN(rclcpp::get_logger("object_recognition_utils:"), "MIYAGI SAN 500 . val = %d  ", int(output_msg.objects.size()));
+   }
+   return true;
+ }
+diff --git a/perception/detected_object_feature_remover/src/detected_object_feature_remover.cpp b/perception/detected_object_feature_remover/src/detected_object_feature_remover.cpp
+index c5f977a4a3..723ab8901d 100644
+--- a/perception/detected_object_feature_remover/src/detected_object_feature_remover.cpp
++++ b/perception/detected_object_feature_remover/src/detected_object_feature_remover.cpp
+@@ -30,6 +30,7 @@ void DetectedObjectFeatureRemover::objectCallback(
+   const DetectedObjectsWithFeature::ConstSharedPtr input)
+ {
+   DetectedObjects output;
++  //RCLCPP_WARN(this->get_logger(), "AVINASH 111 ");
+   convert(*input, output);
+   pub_->publish(output);
+   published_time_publisher_->publish_if_subscribed(pub_, output.header.stamp);
+@@ -39,7 +40,9 @@ void DetectedObjectFeatureRemover::convert(
+   const DetectedObjectsWithFeature & objs_with_feature, DetectedObjects & objs)
+ {
+   objs.header = objs_with_feature.header;
++  //RCLCPP_WARN(this->get_logger(), "AVINASH 222 ");
+   for (const auto & obj_with_feature : objs_with_feature.feature_objects) {
++    //RCLCPP_WARN(this->get_logger(), "AVINASH 333 ");
+     objs.objects.emplace_back(obj_with_feature.object);
+   }
+ }
+diff --git a/perception/detected_object_validation/include/detected_object_validation/detected_object_filter/object_lanelet_filter.hpp b/perception/detected_object_validation/include/detected_object_validation/detected_object_filter/object_lanelet_filter.hpp
+index f3871aaf98..c7ff257efe 100644
+--- a/perception/detected_object_validation/include/detected_object_validation/detected_object_filter/object_lanelet_filter.hpp
++++ b/perception/detected_object_validation/include/detected_object_validation/detected_object_filter/object_lanelet_filter.hpp
+@@ -60,6 +60,7 @@ private:
+ 
+   tf2_ros::Buffer tf_buffer_;
+   tf2_ros::TransformListener tf_listener_;
++  int32_t pankajTan;
+ 
+   utils::FilterTargetLabel filter_target_;
+ 
+diff --git a/perception/detected_object_validation/src/object_lanelet_filter.cpp b/perception/detected_object_validation/src/object_lanelet_filter.cpp
+index 50a81e95d5..2d8d007cfb 100644
+--- a/perception/detected_object_validation/src/object_lanelet_filter.cpp
++++ b/perception/detected_object_validation/src/object_lanelet_filter.cpp
+@@ -56,6 +56,7 @@ ObjectLaneletFilterNode::ObjectLaneletFilterNode(const rclcpp::NodeOptions & nod
+   debug_publisher_ =
+     std::make_unique<tier4_autoware_utils::DebugPublisher>(this, "object_lanelet_filter");
+   published_time_publisher_ = std::make_unique<tier4_autoware_utils::PublishedTimePublisher>(this);
++  pankajTan = 0;
+ }
+ 
+ void ObjectLaneletFilterNode::mapCallback(
+@@ -98,9 +99,13 @@ void ObjectLaneletFilterNode::objectCallback(
+     getIntersectedLanelets(convex_hull, shoulder_lanelets_);
+ 
+   int index = 0;
++  pankajTan++;
+   for (const auto & object : transformed_objects.objects) {
++
++    
+     const auto footprint = setFootprint(object);
+     const auto & label = object.classification.front().label;
++    //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 100 pankajTan = %d label = %d", pankajTan, label);
+     if (filter_target_.isTarget(label)) {
+       Polygon2d polygon;
+       for (const auto & point : footprint.points) {
+diff --git a/perception/detected_object_validation/src/obstacle_pointcloud_based_validator.cpp b/perception/detected_object_validation/src/obstacle_pointcloud_based_validator.cpp
+index db2e6ec3a7..2fbd0d30cf 100644
+--- a/perception/detected_object_validation/src/obstacle_pointcloud_based_validator.cpp
++++ b/perception/detected_object_validation/src/obstacle_pointcloud_based_validator.cpp
+@@ -318,17 +318,20 @@ void ObstaclePointCloudBasedValidator::onObjectsAndObstaclePointCloud(
+   autoware_auto_perception_msgs::msg::DetectedObjects output, removed_objects;
+   output.header = input_objects->header;
+   removed_objects.header = input_objects->header;
++  //RCLCPP_WARN(this->get_logger(), "AVINASHHH 100");
+ 
+   // Transform to pointcloud frame
+   autoware_auto_perception_msgs::msg::DetectedObjects transformed_objects;
+   if (!object_recognition_utils::transformObjects(
+         *input_objects, input_obstacle_pointcloud->header.frame_id, tf_buffer_,
+         transformed_objects)) {
++          //RCLCPP_WARN(this->get_logger(), "AVINASHHH 200");
+     // objects_pub_->publish(*input_objects);
+     return;
+   }
+   bool validation_is_ready = true;
+   if (!validator_->setKdtreeInputCloud(input_obstacle_pointcloud)) {
++    //RCLCPP_WARN(this->get_logger(), "AVINASHHH 300");
+     RCLCPP_WARN_THROTTLE(
+       this->get_logger(), *this->get_clock(), 5,
+       "obstacle pointcloud is empty! Can not validate objects.");
+@@ -336,6 +339,7 @@ void ObstaclePointCloudBasedValidator::onObjectsAndObstaclePointCloud(
+   }
+ 
+   for (size_t i = 0; i < transformed_objects.objects.size(); ++i) {
++    //RCLCPP_WARN(this->get_logger(), "AVINASHHH 400");
+     const auto & transformed_object = transformed_objects.objects.at(i);
+     const auto & object = input_objects->objects.at(i);
+     const auto validated =
+@@ -345,12 +349,15 @@ void ObstaclePointCloudBasedValidator::onObjectsAndObstaclePointCloud(
+       debugger_->addPointcloudWithinPolygon(validator_->getDebugPointCloudWithinObject());
+     }
+     if (validated) {
++      //RCLCPP_WARN(this->get_logger(), "AVINASHHH 500");
+       output.objects.push_back(object);
+     } else {
++      //RCLCPP_WARN(this->get_logger(), "AVINASHHH 600");
+       removed_objects.objects.push_back(object);
+     }
+   }
+ 
++    RCLCPP_WARN(this->get_logger(), "AVINASHHH 700 object = %d", int(output.objects.size()));
+   objects_pub_->publish(output);
+   published_time_publisher_->publish_if_subscribed(objects_pub_, output.header.stamp);
+   if (debugger_) {
+diff --git a/perception/detection_by_tracker/src/detection_by_tracker_core.cpp b/perception/detection_by_tracker/src/detection_by_tracker_core.cpp
+index b1cc97ef3c..62592733c6 100644
+--- a/perception/detection_by_tracker/src/detection_by_tracker_core.cpp
++++ b/perception/detection_by_tracker/src/detection_by_tracker_core.cpp
+@@ -84,35 +84,61 @@ void TrackerHandler::onTrackedObjects(
+   const autoware_auto_perception_msgs::msg::TrackedObjects::ConstSharedPtr msg)
+ {
+   constexpr size_t max_buffer_size = 10;
+-
++  //RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN 111  object buffer size = %d", int(objects_buffer_.size()));
+   // Add tracked objects to buffer
+   objects_buffer_.push_front(*msg);
+-
++  //RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN 222  object buffer size = %d", int(objects_buffer_.size()));
+   // Remove old data
+   while (max_buffer_size < objects_buffer_.size()) {
+     objects_buffer_.pop_back();
+   }
++  //RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN 333  object buffer size = %d", int(objects_buffer_.size()));
+ }
+ 
+ bool TrackerHandler::estimateTrackedObjects(
+   const rclcpp::Time & time, autoware_auto_perception_msgs::msg::TrackedObjects & output)
+ {
++  //RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN 100  object buffer size = %d", int(objects_buffer_.size()));
+   if (objects_buffer_.empty()) {
+     return false;
+   }
+ 
++  // unsigned int currentSelection = UINT_MAX;
++  // unsigned int mark = 0;
++  // for (unsigned int i{}; i < objects_buffer_.size(); ++i) {
++
++  //   auto time_diff = std::fabs((time - objects_buffer_[i].header.stamp).seconds());
++    
++  //   if ( (time_diff < currentSelection) && !objects_buffer_[i].objects.empty()) {
++  //     currentSelection = time_diff;
++  //     mark = i;
++  //     break;
++  //   }
++  // }
++
++  // const auto target_objects_iter = objects_buffer_.begin() + mark;
++  // RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN %d  target_objects_iter = %d", mark, int(target_objects_iter->objects.size()));
++
+   // Get the objects closest to the target time.
+   const auto target_objects_iter = std::min_element(
+     objects_buffer_.cbegin(), objects_buffer_.cend(),
+     [&time](
+       autoware_auto_perception_msgs::msg::TrackedObjects first,
+       autoware_auto_perception_msgs::msg::TrackedObjects second) {
++        //RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN 150  object buffer time diff = %d", std::fabs((time - first.header.stamp).seconds()) <
++             // std::fabs((time - second.header.stamp).seconds()));
++        //RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN 180  object buffer time first = %ld second = %ld", first.objects.size(), second.objects.size());
+       return std::fabs((time - first.header.stamp).seconds()) <
+-             std::fabs((time - second.header.stamp).seconds());
++             std::fabs((time - second.header.stamp).seconds())/* && (first.objects.size() > 0))*/;
+     });
++  
++  RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN 200  target_objects_iter = %d", int(target_objects_iter->objects.size()));
++
++    
+ 
+   // Estimate the pose of the object at the target time
+   const auto dt = time - target_objects_iter->header.stamp;
++  //RCLCPP_WARN(rclcpp::get_logger("TrackerHandler"), "SUCHIYA SAN 300  object buffer size = %d", target_objects_iter->header.stamp.nanosec);
+   output.header.frame_id = target_objects_iter->header.frame_id;
+   output.header.stamp = time;
+   for (const auto & object : target_objects_iter->objects) {
+@@ -212,15 +238,18 @@ void DetectionByTracker::onObjects(
+   detected_objects.header = input_msg->header;
+ 
+   // get objects from tracking module
++  //RCLCPP_WARN(this->get_logger(), "AVINASH 444 size ");
+   autoware_auto_perception_msgs::msg::DetectedObjects tracked_objects;
+   {
+     autoware_auto_perception_msgs::msg::TrackedObjects objects, transformed_objects;
+     const bool available_trackers =
+       tracker_handler_.estimateTrackedObjects(input_msg->header.stamp, objects);
++      //RCLCPP_WARN(this->get_logger(), "MIYAGI SAN 600 . tracker = %d", available_trackers);
+     if (
+       !available_trackers ||
+       !object_recognition_utils::transformObjects(
+         objects, input_msg->header.frame_id, tf_buffer_, transformed_objects)) {
++          //RCLCPP_WARN(this->get_logger(), "AVINASH 555 ");
+       objects_pub_->publish(detected_objects);
+       published_time_publisher_->publish_if_subscribed(objects_pub_, detected_objects.header.stamp);
+       return;
+@@ -246,12 +275,16 @@ void DetectionByTracker::onObjects(
+ 
+   // merge under/over segmented objects to build output objects
+   for (const auto & merged_object : merged_objects.feature_objects) {
++    //RCLCPP_WARN(this->get_logger(), "AVINASH 666 ");
+     detected_objects.objects.push_back(merged_object.object);
+   }
+   for (const auto & divided_object : divided_objects.feature_objects) {
++    //RCLCPP_WARN(this->get_logger(), "AVINASH 777 ");
+     detected_objects.objects.push_back(divided_object.object);
+   }
+ 
++  RCLCPP_WARN(this->get_logger(), "AVINASH 888 object = %d ", int(detected_objects.objects.size()));
++
+   objects_pub_->publish(detected_objects);
+   published_time_publisher_->publish_if_subscribed(objects_pub_, detected_objects.header.stamp);
+   debugger_->publishProcessingTime();
+diff --git a/perception/object_merger/src/object_association_merger/node.cpp b/perception/object_merger/src/object_association_merger/node.cpp
+index ec5ad62b52..12fdd30546 100644
+--- a/perception/object_merger/src/object_association_merger/node.cpp
++++ b/perception/object_merger/src/object_association_merger/node.cpp
+@@ -164,28 +164,39 @@ void ObjectAssociationMergerNode::objectsCallback(
+     const auto & object0 = objects0.at(object0_idx);
+     if (direct_assignment.find(object0_idx) != direct_assignment.end()) {  // found and merge
+       const auto & object1 = objects1.at(direct_assignment.at(object0_idx));
++      //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 700 ");
+       switch (priority_mode_) {
+         case PriorityMode::Object0:
++          //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 710 ");
+           output_msg.objects.push_back(object0);
+           break;
+         case PriorityMode::Object1:
++          //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 720 ");
+           output_msg.objects.push_back(object1);
+           break;
+         case PriorityMode::Confidence:
+-          if (object1.existence_probability <= object0.existence_probability)
++          //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 730 ");
++          if (object1.existence_probability <= object0.existence_probability){
+             output_msg.objects.push_back(object0);
+-          else
++            //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 740 ");
++          }
++          else{
+             output_msg.objects.push_back(object1);
++            //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 750 ");
++          }
+           break;
+       }
+     } else {  // not found
++      //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 800");
+       output_msg.objects.push_back(object0);
+     }
+   }
+   for (size_t object1_idx = 0; object1_idx < objects1.size(); ++object1_idx) {
+     const auto & object1 = objects1.at(object1_idx);
+     if (reverse_assignment.find(object1_idx) != reverse_assignment.end()) {  // found
++      //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 900");
+     } else {                                                                 // not found
++      //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 950");
+       output_msg.objects.push_back(object1);
+     }
+   }
+diff --git a/perception/shape_estimation/src/node.cpp b/perception/shape_estimation/src/node.cpp
+index 9d7e8b4d47..ebd8203e3a 100644
+--- a/perception/shape_estimation/src/node.cpp
++++ b/perception/shape_estimation/src/node.cpp
+@@ -50,6 +50,7 @@ ShapeEstimationNode::ShapeEstimationNode(const rclcpp::NodeOptions & node_option
+   fix_filtered_objects_label_to_unknown_ =
+     declare_parameter<bool>("fix_filtered_objects_label_to_unknown");
+   RCLCPP_INFO(this->get_logger(), "using boost shape estimation : %d", use_boost_bbox_optimizer);
++  // RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ path doesn't have enough points.");
+   estimator_ =
+     std::make_unique<ShapeEstimator>(use_corrector, use_filter, use_boost_bbox_optimizer);
+ 
+@@ -63,6 +64,7 @@ ShapeEstimationNode::ShapeEstimationNode(const rclcpp::NodeOptions & node_option
+ 
+ void ShapeEstimationNode::callback(const DetectedObjectsWithFeature::ConstSharedPtr input_msg)
+ {
++  // RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 000 path doesn't have enough points.");
+   stop_watch_ptr_->toc("processing_time", true);
+   // Guard
+   if (pub_->get_subscription_count() < 1) {
+@@ -86,7 +88,9 @@ void ShapeEstimationNode::callback(const DetectedObjectsWithFeature::ConstShared
+     pcl::fromROSMsg(feature.cluster, *cluster);
+ 
+     // check cluster data
++
+     if (cluster->empty()) {
++      //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 100 path doesn't have enough points.");
+       continue;
+     }
+ 
+@@ -108,17 +112,22 @@ void ShapeEstimationNode::callback(const DetectedObjectsWithFeature::ConstShared
+ 
+     // If the shape estimation fails, change to Unknown object.
+     if (!fix_filtered_objects_label_to_unknown_ && !estimated_success) {
++      //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 200 path doesn't have enough points.");
+       continue;
+     }
+     output_msg.feature_objects.push_back(feature_object);
+     if (!estimated_success) {
++      //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 300 path doesn't have enough points.");
+       output_msg.feature_objects.back().object.classification.front().label = Label::UNKNOWN;
+     }
+ 
++    //RCLCPP_WARN(this->get_logger(), "PANKAJJJJJ 400 val =%d.", int(output_msg.feature_objects.size()));
++
+     output_msg.feature_objects.back().object.shape = shape;
+     output_msg.feature_objects.back().object.kinematics.pose_with_covariance.pose = pose;
+   }
+ 
++
+   // Publish
+   pub_->publish(output_msg);
+   published_time_publisher_->publish_if_subscribed(pub_, output_msg.header.stamp);

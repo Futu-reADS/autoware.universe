@@ -111,7 +111,8 @@
   />
 
   <!-- Whether to use detection by tracker -->
-  <arg name="use_detection_by_tracker" default="true"/>
+  <arg name="use_detection_by_tracker" default="false"/> 
+   <!-- true LJ -->
 
   <!-- Radar long range integration methods -->
   <arg
@@ -119,6 +120,7 @@
     default="true"
     description="if use_radar_tracking_fusion:=true, radar information is merged in tracking launch. Otherwise, radar information is merged in detection launch."
   />
+<!-- true LJ  -->
 
   <!-- Perception module -->
   <group>
