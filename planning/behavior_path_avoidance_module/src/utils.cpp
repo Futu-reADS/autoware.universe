@@ -520,9 +520,9 @@ bool isParkedVehicle(
   const auto & object_pose = object.object.kinematics.initial_pose_with_covariance.pose;
   object.to_centerline =
     lanelet::utils::getArcCoordinates(data.current_lanelets, object_pose).distance;
-  if (std::abs(object.to_centerline) < parameters->threshold_distance_object_is_on_center) {
+  /*if (std::abs(object.to_centerline) < parameters->threshold_distance_object_is_on_center) {
     return false;
-  }
+  }// commented out YH*/
 
   return true;
 }
@@ -750,10 +750,10 @@ bool isSatisfiedWithNonVehicleCondition(
   const auto & object_pose = object.object.kinematics.initial_pose_with_covariance.pose;
   object.to_centerline =
     lanelet::utils::getArcCoordinates(data.current_lanelets, object_pose).distance;
-  if (std::abs(object.to_centerline) < parameters->threshold_distance_object_is_on_center) {
+  /*if (std::abs(object.to_centerline) < parameters->threshold_distance_object_is_on_center) {
     object.reason = AvoidanceDebugFactor::TOO_NEAR_TO_CENTERLINE;
     return false;
-  }
+  }// commented out YH*/
 
   return true;
 }
