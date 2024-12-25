@@ -1,15 +1,13 @@
 /**:
   ros__parameters:
-    # version: 0.1.0 # uncomment this line in the next update of this file format. please check Readme.md
-    # wheel_radius: 0.110     # The radius of the wheel, primarily used for dead reckoning.
-    # wheel_width: 0.048      # The lateral width of a wheel tire, primarily used for dead reckoning.
-    # wheel_base: 0.72        # between front wheel center and rear wheel center
-    # wheel_tread: 0.452      # between left wheel center and right wheel center
-    # front_overhang: 0.194   # between front wheel center and vehicle front
-    # rear_overhang: 0.195    # between rear wheel center and vehicle rear
-    # left_overhang: 0.092    # between left wheel center and vehicle left
-    # right_overhang: 0.092   # between right wheel center and vehicle right
-    # vehicle_height: 1.0
-    # max_steer_angle: 0.61  # [rad] 35 deg
-    # # max_steer_angle: 0.785  # [rad] 45 deg
-
+    version: 0.1.0 # uncomment this line in the next update of this file format. please check Readme.md
+    wheel_radius: 0.18   # The radius of the wheel, primarily used for dead reckoning.
+    wheel_width: 0.075     # The lateral width of a wheel tire, primarily used for dead reckoning.
+    wheel_base: 1.03     # between front wheel center and rear wheel center
+    wheel_tread: 0.59    # between left wheel center and right wheel center
+    front_overhang: 0.35 # between front wheel center and vehicle front
+    rear_overhang: 0.40   # 20241129HM chair increased rear overhang # 0.20  # between rear wheel center and vehicle rear
+    left_overhang: 0.12   # between left wheel center and vehicle left
+    right_overhang: 0.12  # between right wheel center and vehicle right
+    vehicle_height: 1.5   # 20241129HM chair back made vehicle taller # 0.94   
+    max_steer_angle: 0.5 # [rad]
