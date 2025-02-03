@@ -38,6 +38,10 @@ DiagUnit::DiagnosticStatus DiagLeaf::create_diagnostic_status() const
 
 void DiagGraph::create(const DiagGraphStruct & msg)
 {
+  nodes_.clear();
+  diags_.clear();
+  links_.clear();
+
   created_stamp_ = msg.stamp;
   id_ = msg.id;
   for (const auto & node : msg.nodes) nodes_.push_back(std::make_unique<DiagNode>(node));
@@ -54,7 +58,7 @@ void DiagGraph::create(const DiagGraphStruct & msg)
   for (const auto & data : msg.links) {
     DiagNode * parent = nodes_.at(data.parent).get();
     DiagUnit * child = get_child(data.is_leaf, data.child);
-    const auto link = links_.emplace_back(std::make_unique<DiagLink>(data)).get();
+    const auto link = links_.emplace_back(std::make_unique<DiagLink>(data, parent, child)).get();
     parent->add_child({link, child});
   }
 }
