@@ -18,8 +18,8 @@
       </composable_node>
       <!-- <composable_node pkg="system_monitor" plugin="NetMonitor" name="net_monitor">
         <param from="$(var net_monitor_config_file)"/>
-      </composable_node>
-      <composable_node pkg="system_monitor" plugin="NTPMonitor" name="ntp_monitor">
+      </composable_node> -->
+      <!-- <composable_node pkg="system_monitor" plugin="NTPMonitor" name="ntp_monitor">
         <param from="$(var ntp_monitor_config_file)"/>
       </composable_node> -->
       <composable_node pkg="system_monitor" plugin="ProcessMonitor" name="process_monitor">
@@ -28,9 +28,9 @@
       <composable_node pkg="system_monitor" plugin="HddMonitor" name="hdd_monitor">
         <param from="$(var hdd_monitor_config_file)"/>
       </composable_node>
-      <composable_node pkg="system_monitor" plugin="GPUMonitor" name="gpu_monitor">
+      <!-- <composable_node pkg="system_monitor" plugin="GPUMonitor" name="gpu_monitor">
         <param from="$(var gpu_monitor_config_file)"/>
-      </composable_node>
+      </composable_node> -->
       <composable_node pkg="system_monitor" plugin="VoltageMonitor" name="voltage_monitor">
         <param from="$(var voltage_monitor_config_file)"/>
       </composable_node>
