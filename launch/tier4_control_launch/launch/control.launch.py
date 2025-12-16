@@ -254,7 +254,7 @@ def launch_setup(context, *args, **kwargs):
             ("trajectory", "/planning/scenario_planning/trajectory"),
             ("control_cmd", "/control/command/control_cmd"),
             ("trajectory_follower_control_cmd", "/control/trajectory_follower/control_cmd"),
-            ("control_mode_report", "/vehicle/status/control_mode"),
+            ("control_mode_report", "/vehicle/status/control_mode_sensored"),    # HM 20251217 to prevent unintended autonomous drive
             ("gate_operation_mode", "/control/vehicle_cmd_gate/operation_mode"),
             # output
             ("is_autonomous_available", "/control/is_autonomous_available"),
