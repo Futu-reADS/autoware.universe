@@ -25,8 +25,10 @@
 
 #include <boost/format.hpp>
 
+#include <chrono>
 #include <memory>
 #include <string>
+#include <thread>
 
 namespace behavior_path_planner
 {
@@ -178,6 +180,12 @@ BehaviorModuleOutput PlannerManager::run(const std::shared_ptr<PlannerData> & da
       addApprovedModule(highest_priority_module);
       clearCandidateModules();
       debug_info_.emplace_back(highest_priority_module, Action::ADD, "To Approval");
+
+      // Mitigation for rclcpp issue #2163 (guard condition race in Humble)
+      // Add delay between retry iterations to allow subscriber cleanup to complete
+      if (itr_num > 1) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      }
 
       if (itr_num >= max_iteration_num_) {
         RCLCPP_WARN_THROTTLE(
